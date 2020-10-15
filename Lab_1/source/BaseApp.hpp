@@ -6,19 +6,22 @@
 
 #include <functional>
 
-class Application
-{
+class BaseApp {
 public:
 	void Run();
-	Application();
-	~Application();
+	BaseApp();
+	~BaseApp();
+
 private:
+	BaseApp(const BaseApp &app);
+    BaseApp& operator=(BaseApp&);
+
+	void main_loop();
 	virtual void Start() = 0;
 	virtual void Update(float dTime) = 0;
 	virtual void End() = 0;
+
+private:
 	GLFWwindow *window = nullptr;
-	Application(const Application &app);
-    Application& operator=(Application&);
 	float currentTime, lastTime, dTime;
-	void main_loop();
 };

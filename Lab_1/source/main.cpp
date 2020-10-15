@@ -1,6 +1,6 @@
 // Based on https://gist.github.com/ousttrue/0f3a11d5d28e365b129fe08f18f4e141
 
-#include "Application.hpp"
+#include "BaseApp.hpp"
 #include "Shader.hpp"
 
 
@@ -25,7 +25,7 @@ struct Vertex
 	// glm::vec2 Tex;
 };
 
-class App : public Application {
+class App : public BaseApp {
 
 	std::array<Vertex, 3> vertices = {
 		Vertex{{0.0f, -0.25f}, {1.0f, 0.0f, 0.0f}},
@@ -88,6 +88,6 @@ class App : public Application {
 
 int main(int argc, char *argv[])
 {
-	App app;
+	App app {};
 	app.Run();
 }

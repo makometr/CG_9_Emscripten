@@ -1,5 +1,4 @@
-#include "Application.hpp"
-
+#include "BaseApp.hpp"
 #include "imgui.h"
 #include "imgui_impl_glfw.h"
 #include "imgui_impl_opengl3.h"
@@ -33,8 +32,7 @@ void loop() {
 
 void print_info();
 
-Application::Application()
-{
+BaseApp::BaseApp() {
 	std::cout << "Starting application\n";
 	std::cout << PROJECT_NAME << std::endl;
 
@@ -54,18 +52,12 @@ Application::Application()
 	glfwWindowHint(GLFW_RESIZABLE, true);
 
 	window = glfwCreateWindow(800, 600, PROJECT_NAME, nullptr, nullptr);
-	if (window == NULL)
-	{
-		// std::cerr << "Failed to create window\n";
+	if (!window)
 		throw std::runtime_error("Failed to create GLFW window");
-	}
 
 	glfwMakeContextCurrent(window);
 	if (!gladLoadGLES2Loader((GLADloadproc)glfwGetProcAddress))
-	{
-		// std::cerr << "Failed to initialize GLAD\n";
 		throw std::runtime_error("Failed to initialize GLAD");
-	}
 
 	print_info();
 
@@ -74,10 +66,10 @@ Application::Application()
 	ImGui_ImplOpenGL3_Init();
 }
 
-void Application::Run() {
+void BaseApp::Run() {
 	Start();
 
-	f = std::bind(&Application::main_loop, this);
+	f = std::bind(&BaseApp::main_loop, this);
 #ifdef __EMSCRIPTEN__
 	emscripten_set_main_loop(loop, 0, true);
 #else
@@ -90,7 +82,7 @@ void Application::Run() {
 	End();
 }
 
-Application::~Application()
+BaseApp::~BaseApp()
 {
 	ImGui_ImplOpenGL3_Shutdown();
 	ImGui_ImplGlfw_Shutdown();
@@ -98,8 +90,7 @@ Application::~Application()
 	glfwTerminate();
 }
 
-void Application::main_loop()
-{
+void BaseApp::main_loop() {
 	currentTime = glfwGetTime();
 	dTime = lastTime - currentTime;
 	lastTime = currentTime;
