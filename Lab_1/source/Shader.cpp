@@ -24,7 +24,7 @@ static int compileShader(int shaderType, const std::string& source) {
 	if (!success)
 	{
 		glGetShaderInfoLog(shaderId, 512, NULL, infoLog);
-		std::cerr << "   Error: shader compilation is failed.\n"
+		std::cout << "   Error: shader compilation is failed.\n"
 		          << infoLog << std::endl;
 	}
 	return shaderId;
@@ -58,7 +58,7 @@ Shader::Shader(const std::string &vPath, const std::string &fPath)
 	if (!success)
 	{
 		glGetProgramInfoLog(id, 512, NULL, infoLog);
-		std::cerr << "   Error: shader linking is failed:\n"
+		std::cout << "   Error: shader linking is failed:\n"
 		          << infoLog << std::endl;
 		id = 0;
 	}

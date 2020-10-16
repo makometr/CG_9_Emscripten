@@ -8,14 +8,13 @@
 
 class BaseApp {
 public:
-	void Run();
 	BaseApp();
+	BaseApp(const BaseApp &app) = delete;
+    BaseApp& operator=(BaseApp&) = delete;
+	void Run();
 	~BaseApp();
 
-private:
-	BaseApp(const BaseApp &app);
-    BaseApp& operator=(BaseApp&);
-
+protected:
 	void main_loop();
 	virtual void Start() = 0;
 	virtual void Update(float dTime) = 0;

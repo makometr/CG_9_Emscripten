@@ -77,7 +77,7 @@ if (${CMAKE_SYSTEM_NAME} STREQUAL "Emscripten")
   # set_target_properties(${PROJECT_NAME} PROPERTIES COMPILE_FLAGS "-m32")
 
   # Flags from imgui's repository example for Emscripten
-  set_target_properties(${PROJECT_NAME} PROPERTIES COMPILE_FLAGS "-s WASM=1 -s ALLOW_MEMORY_GROWTH=1 -s DISABLE_EXCEPTION_CATCHING=1 -s NO_EXIT_RUNTIME=0 -s ASSERTIONS=1 -s NO_FILESYSTEM=1")
+  set_target_properties(${PROJECT_NAME} PROPERTIES COMPILE_FLAGS " -s WASM=1 -s ALLOW_MEMORY_GROWTH=1 -s DISABLE_EXCEPTION_CATCHING=1 -s NO_EXIT_RUNTIME=0 -s ASSERTIONS=1 -s NO_FILESYSTEM=1")
   
   # Flag to support ES3
   set_target_properties(${PROJECT_NAME} PROPERTIES LINK_FLAGS "-s FULL_ES3=1")  

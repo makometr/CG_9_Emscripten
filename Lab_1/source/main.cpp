@@ -34,10 +34,14 @@ class App : public BaseApp {
 	};
 	GLuint VAO = 0, VBO = 0;
 	Shader basicShader{"resources/shaders/basic.vs", "resources/shaders/basic.fs"};
-	float scale = 1.0f;
+	float scale = 3.0f;
+	float posX = 0;
+	float posY = 0;
+	float speed = 1;
 
 
 	void Start() override {
+		ImGui::StyleColorsLight();
 		glClearColor(1.0, 0.87, 0.83, 1.0);
 		// glUniform1i(0, 0);
 
@@ -58,19 +62,27 @@ class App : public BaseApp {
 	void Update(float dTime) override {
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-		if (ImGui::Begin("Window")) {
-			ImGui::SliderFloat("Scale", &scale, 0.1f, 5.0f);
-		}
+		ImGui::SetNextWindowSize({230,200}, ImGuiCond_Once);
+
+		ImGui::Begin("Triangle");
+		ImGui::SliderFloat("Speed", &speed, -100.0, 100.0);
+		ImGui::SliderFloat("X", &posX, -100.0, 100.0);
+		ImGui::SliderFloat("Y", &posY, -100.0, 100.0);
 		ImGui::End();
 
-		// ImGui::ShowDemoWindow();
 
-		float time = glfwGetTime();
-		float scale = this->scale;
-		std::for_each(vertices.begin(), vertices.end(), [time, scale, idx = 0](Vertex &v) mutable {
+		std::for_each(vertices.begin(), vertices.end(), [x = posX/100, y = posY/100, time=glfwGetTime(), scale=scale, speed = speed, idx = 0](Vertex &v) mutable {
 			constexpr float PI_CONST = glm::pi<float>();
-			v.Pos = {glm::cos(2 * PI_CONST / 3 * idx + time / 10), glm::sin(2 * PI_CONST / 3 * idx + time / 10)};
+			if (speed == 0.0f)
+				speed = 1;
+			float step = time * log(abs(speed));
+			if (speed < 0)
+				step *= -1;
+			auto new_x = glm::cos(2 * PI_CONST / 3 * idx + step) + x;
+			auto new_y = glm::sin(2 * PI_CONST / 3 * idx + step) + y;
+			v.Pos = {new_x, new_y};
 			v.Pos *= scale/5.0f;
+			v.Color += 0.0001*speed;
 			++idx;
 		});
 
@@ -82,7 +94,7 @@ class App : public BaseApp {
 	}
 
 	void End() override {
-
+		
 	}
 };
 

@@ -82,8 +82,7 @@ void BaseApp::Run() {
 	End();
 }
 
-BaseApp::~BaseApp()
-{
+BaseApp::~BaseApp() {
 	ImGui_ImplOpenGL3_Shutdown();
 	ImGui_ImplGlfw_Shutdown();
 	ImGui::DestroyContext();
