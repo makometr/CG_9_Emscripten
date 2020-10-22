@@ -82,7 +82,7 @@ class App : public BaseApp {
 			auto new_y = glm::sin(2 * PI_CONST / 3 * idx + step) + y;
 			v.Pos = {new_x, new_y};
 			v.Pos *= scale/5.0f;
-			v.Color += 0.0001*speed;
+			// v.Color += 0.0001*speed;
 			++idx;
 		});
 

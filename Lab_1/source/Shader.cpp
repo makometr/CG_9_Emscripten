@@ -85,12 +85,17 @@ std::optional<std::string> Shader::loadFromFile(const std::string &path)
 	file.open(path);
 	if (file.is_open()) {
 		std::string original{std::istreambuf_iterator<char>(file), std::istreambuf_iterator<char>()};
+		std::cout << original << std::endl;
 		const auto versionBegin    = original.find("#version");
 		const auto versionEnd      = original.find('\n', versionBegin);
 		const auto versionLen      = versionEnd-versionBegin+1;
+		// std::string::npos
+		std::cout << "\nVersionBegin: " << versionBegin
+				  << "\nVersionEnd: " << versionEnd
+				  << "\nversionLen: " << versionLen << std::endl;
 		// TODO: Remove substr
-		const auto isCore          = original.substr(versionBegin, versionLen).find("core") != std::string::npos;
-		const auto isEs            = original.substr(versionBegin, versionLen).find("es") != std::string::npos;
+		const auto isCore          = original.substr(versionBegin, versionLen).find("core") != std::string::npos; // ?
+		const auto isEs            = original.substr(versionBegin, versionLen).find("es") != std::string::npos; // ?
 		const auto hasPrecision    = original.find("\nprecision ") != std::string::npos;
 		// std::cout << original.substr(versionBegin, versionLen);
 		// std::cout << versionBegin << ":" << versionEnd << "\n";
