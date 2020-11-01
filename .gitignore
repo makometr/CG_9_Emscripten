@@ -2,7 +2,7 @@
 **/.vscode
 /Materials
 *.doc
-*.doc
+*.doc*
 
 # Prerequisites
 *.d

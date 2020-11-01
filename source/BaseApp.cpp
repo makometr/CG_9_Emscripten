@@ -50,6 +50,7 @@ BaseApp::BaseApp() {
 #endif
 
 	glfwWindowHint(GLFW_RESIZABLE, true);
+	glfwWindowHint(GLFW_SAMPLES, 4);
 
 	window = glfwCreateWindow(800, 600, PROJECT_NAME, nullptr, nullptr);
 	if (!window)
