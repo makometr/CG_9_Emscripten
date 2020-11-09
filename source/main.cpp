@@ -68,9 +68,8 @@ public:
 		glBindVertexArray(0);	
 	}
 
-	void updateTransfrom(const glm::vec3& pos, int e) {
+	void updateTransfrom(const glm::mat4& view, int e) {
 		glm::mat4 model = glm::scale(glm::mat4(1.0f), glm::vec3(100, 100, 100));
-        glm::mat4 view = glm::lookAt(pos, {0.0f, 0.0f, 0.0f}, {0.0f, 1.0f, 0.0f});
 		glm::mat4 projection {1.0f};
 		if (!e)
         	projection = glm::perspective(45.0f, (GLfloat)WIDTH / (GLfloat)HEIGHT, 0.1f, 100.0f);
@@ -199,7 +198,6 @@ class App : public BaseApp {
 	glm::vec3 scale {0.0f};
 	float speed = 1;
 	float scale_tmp = 1;
-	glm::vec3 pos{1.0f, 0.0f, 4.0f};
 
 	CameraMoveCallbackManager cmcbManager {};
 	Camera camera{glm::vec3(0.0f, 0.0f, 3.0f)};
@@ -216,7 +214,6 @@ class App : public BaseApp {
 
 		ImGui::StyleColorsLight();
 		glClearColor(1.0, 0.87, 0.83, 1.0);
-		// glUniform1i(0, 0);
 
 		glGenVertexArrays(1, &VAO);
 		glBindVertexArray(VAO);
@@ -282,7 +279,6 @@ class App : public BaseApp {
 		ImGui::SetNextWindowSize({300,400}, ImGuiCond_Once);
 
 		ImGui::Begin("Triangle");
-		ImGui::SliderFloat3("CameraPos", &pos.x, -10.0, 10.0);
 		ImGui::SliderFloat("Speed", &speed, -100.0, 100.0);
 		ImGui::SliderFloat("Translate: X", &position.x, -100.0, 100.0);
 		ImGui::SliderFloat("Translate: Y", &position.y, -100.0, 100.0);
@@ -309,12 +305,10 @@ class App : public BaseApp {
 		model = glm::rotate(model, glm::radians(rotate.z), glm::vec3(0.0, 0.0, 1.0));
 		model = glm::scale(model, glm::vec3(scale_tmp));
 
-        glm::mat4 view {1.0f};
-        view = camera.GetViewMatrix();
+        glm::mat4 view = camera.GetViewMatrix();
 
         glm::mat4 projection {1.0f};
 		if (!ProjectionType)
-        	// projection = glm::perspective(45.0f, (GLfloat)WIDTH / (GLfloat)HEIGHT, 0.1f, 100.0f);
         	projection = glm::perspective(camera.Zoom, (GLfloat)WIDTH / (GLfloat)HEIGHT, 0.1f, 100.0f);
 		else
 			projection = glm::ortho(-4.0f, 4.0f, -3.0f, 3.0f, 0.1f, 100.0f );
@@ -322,11 +316,6 @@ class App : public BaseApp {
 		glm::mat4 result = projection * view * model;
 		GLuint transformLoc = glGetUniformLocation(basicShader.getId(), "transform");
 		glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(result)); 
-
-		// GLint modelLoc = glGetUniformLocation(basicShader.getId(), "model");
-        // GLint viewLoc = glGetUniformLocation(basicShader.getId(), "view");
-        // GLint projLoc = glGetUniformLocation(basicShader.getId(), "projection"); 
-        // Pass them to the shaders
 
 		glBindVertexArray(VAO); // к объекту вершинного масиива привязыаем vao
 		glBindBuffer(GL_ARRAY_BUFFER, VBO);
@@ -375,7 +364,7 @@ class App : public BaseApp {
 		// glDrawElements(GL_LINES, 4*6, GL_UNSIGNED_INT, 0);
 
 		axesShader.use();
-		axes.updateTransfrom(pos, 0);
+		axes.updateTransfrom(view, ProjectionType);
 		axes.draw(axesShader);
 	}
 
