@@ -19,8 +19,8 @@ protected:
 	virtual void Start() = 0;
 	virtual void Update(float dTime) = 0;
 	virtual void End() = 0;
+	GLFWwindow *window = nullptr;
 
 private:
-	GLFWwindow *window = nullptr;
 	float currentTime, lastTime, dTime;
 };

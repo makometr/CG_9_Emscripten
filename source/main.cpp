@@ -21,6 +21,9 @@
 #include <algorithm>
 #include <iostream>
 
+#include "Camera.hpp"
+#include "CallbackManager.hpp"
+
 // Window dimensions
 static constexpr GLuint WIDTH = 800, HEIGHT = 600;
 
@@ -197,8 +200,22 @@ class App : public BaseApp {
 	float scale_tmp = 1;
 	glm::vec3 pos{1.0f, 0.0f, 4.0f};
 
+	CallbackManager cbManager {};
+	Camera camera{glm::vec3(0.0f, 0.0f, 3.0f)};
+	bool keys[1024];
+	GLfloat lastX = 400, lastY = 300;
+	bool firstMouse = true;
+	GLfloat deltaTime = 0.0f;
+	GLfloat lastFrame = 0.0f;
+
+
 	void Start() override {
 		glEnable(GL_DEPTH_TEST);
+		// glfwSetKeyCallback(window, key_callback);
+
+		glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+		cbManager.setCallbacks(window, &camera);
+
 		ImGui::StyleColorsLight();
 		glClearColor(1.0, 0.87, 0.83, 1.0);
 		// glUniform1i(0, 0);
@@ -254,6 +271,12 @@ class App : public BaseApp {
 	}
 
 	void Update(float dTime) override {
+        // Set frame time
+        GLfloat currentFrame = glfwGetTime();
+        deltaTime = currentFrame - lastFrame;
+        lastFrame = currentFrame;
+
+		glfwPollEvents();
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 		ImGui::SetNextWindowSize({300,400}, ImGuiCond_Once);
@@ -279,7 +302,7 @@ class App : public BaseApp {
 
 		basicShader.use();
 		glm::mat4 model {1.0f}; 
-		rotate = glm::vec3((GLfloat)glfwGetTime() * speed);
+		rotate = glm::vec3((GLfloat)(int(glfwGetTime() * speed) % 360));
 		model = glm::translate(model, glm::vec3(position.x/10, position.y/10, position.z/10));
 		model = glm::rotate(model, glm::radians(rotate.x), glm::vec3(1.0, 0.0, 0.0));
 		model = glm::rotate(model, glm::radians(rotate.y), glm::vec3(0.0, 1.0, 0.0));
@@ -287,7 +310,7 @@ class App : public BaseApp {
 		model = glm::scale(model, glm::vec3(scale_tmp));
 
         glm::mat4 view {1.0f};
-        view = glm::lookAt(pos, {0.0f, 0.0f, 0.0f}, {0.0f, 1.0f, 0.0f});
+        view = camera.GetViewMatrix();
 
         glm::mat4 projection {1.0f};
 		if (!ProjectionType)
@@ -305,10 +328,10 @@ class App : public BaseApp {
         // Pass them to the shaders
 
 		glBindVertexArray(VAO); // к объекту вершинного масиива привязыаем vao
-		// glBindBuffer(GL_ARRAY_BUFFER, VBO);
-		// glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices.data(), GL_DYNAMIC_DRAW);
-		// glDrawArrays(GL_TRIANGLES, 0, 36);
-		// glBindVertexArray(0);
+		glBindBuffer(GL_ARRAY_BUFFER, VBO);
+		glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices.data(), GL_DYNAMIC_DRAW);
+		glDrawArrays(GL_TRIANGLES, 0, 36);
+		glBindVertexArray(0); 
 
 		// glBindVertexArray(vao_rect);
 		// glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
@@ -326,21 +349,24 @@ class App : public BaseApp {
 		};
 		
 		static glm::vec3 scales {3.0f, 1.0f, 2.0f};
-		for (size_t i {1}; i <= 3; i++) {
-			glm::mat4 model {1.0f};
-			model = glm::translate(model, positions[i-1]);
-			// rotate
-			model = glm::scale(model, glm::vec3(scales));
-			glm::mat4 result = projection * view * model;
+		scales *= scale_tmp;
+		// for (size_t i {1}; i <= 3; i++) {
+		// 	glm::mat4 model {1.0f};
+		// 	model = glm::translate(model, positions[i-1]);
+		// 	model = glm::rotate(model, glm::radians(rotate.x), glm::vec3(1.0, 0.0, 0.0));
+		// 	model = glm::rotate(model, glm::radians(rotate.y), glm::vec3(0.0, 1.0, 0.0));
+		// 	model = glm::rotate(model, glm::radians(rotate.z), glm::vec3(0.0, 0.0, 1.0));
+		// 	model = glm::scale(model, glm::vec3(scales));
+		// 	glm::mat4 result = projection * view * model;
 
-			GLuint transformLoc = glGetUniformLocation(basicShader.getId(), "transform");
-			glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(result));
+		// 	GLuint transformLoc = glGetUniformLocation(basicShader.getId(), "transform");
+		// 	glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(result));
 
-			GLuint transformLoc_color = glGetUniformLocation(basicShader.getId(), "color");
-			glUniform3fv(transformLoc_color, 1, glm::value_ptr(colors[i-1]));
+		// 	GLuint transformLoc_color = glGetUniformLocation(basicShader.getId(), "color");
+		// 	glUniform3fv(transformLoc_color, 1, glm::value_ptr(colors[i-1]));
 
-			glDrawArrays(GL_TRIANGLES, 0, 36);
-		}
+		// 	glDrawArrays(GL_TRIANGLES, 0, 36);
+		// }
 		glBindVertexArray(0);
 
 		// glLineWidth(2.0f); 
