@@ -1,5 +1,5 @@
 #include "Camera.hpp"
-#include "CallbackManager.hpp"
+#include "CameraMoveCallbackManager.hpp"
 
 static Camera* camera = nullptr;
 static std::array<bool, 1024> keys;
@@ -10,11 +10,22 @@ inline void mouse_callback(GLFWwindow* window, double xpos, double ypos);
 inline void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
 
 
-void CallbackManager::setCallbacks(GLFWwindow* winPtr, Camera* camPtr) {
+void CameraMoveCallbackManager::setCallbacks(GLFWwindow* winPtr, Camera* camPtr) {
     camera = camPtr;
     glfwSetKeyCallback(winPtr, key_callback);
     glfwSetCursorPosCallback(winPtr, mouse_callback);
     glfwSetScrollCallback(winPtr, scroll_callback);
+}
+
+void CameraMoveCallbackManager::applyPlayerMoveControllerChanges(GLfloat deltaTime) {
+    if (keys[GLFW_KEY_W])
+        camera->ProcessKeyboard(FORWARD, deltaTime);
+    if (keys[GLFW_KEY_S])
+        camera->ProcessKeyboard(BACKWARD, deltaTime);
+    if (keys[GLFW_KEY_A])
+        camera->ProcessKeyboard(LEFT, deltaTime);
+    if (keys[GLFW_KEY_D])
+        camera->ProcessKeyboard(RIGHT, deltaTime);
 }
 
 

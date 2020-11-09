@@ -9,8 +9,9 @@
 
 #include "Camera.hpp"
 
-class CallbackManager {
+class CameraMoveCallbackManager {
 public:
-    CallbackManager() = default;
+    CameraMoveCallbackManager() = default;
     void setCallbacks(GLFWwindow* winPtr, Camera* camPtr);
+    void applyPlayerMoveControllerChanges(GLfloat deltaTime);
 };

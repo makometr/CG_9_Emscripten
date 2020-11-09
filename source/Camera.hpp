@@ -50,8 +50,6 @@ public:
     GLfloat lastX = 400;
     GLfloat lastY = 300;
     bool firstMouse = true;
-    GLfloat deltaTime = 0.0f;
-    GLfloat lastFrame = 0.0f;
 
     // Constructor with vectors
     Camera(glm::vec3 position = glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3 up = glm::vec3(0.0f, 1.0f, 0.0f), GLfloat yaw = YAW, GLfloat pitch = PITCH) : Front(glm::vec3(0.0f, 0.0f, -1.0f)), MovementSpeed(SPEED), MouseSensitivity(SENSITIVTY), Zoom(ZOOM) {
@@ -123,6 +121,7 @@ public:
 
     // Processes input received from a mouse scroll-wheel event. Only requires input on the vertical wheel-axis
     void ProcessMouseScroll(GLfloat yoffset) {
+        yoffset /= -20000;
         if (this->Zoom >= 1.0f && this->Zoom <= 45.0f)
             this->Zoom -= yoffset;
         if (this->Zoom <= 1.0f)

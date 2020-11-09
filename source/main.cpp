@@ -22,7 +22,7 @@
 #include <iostream>
 
 #include "Camera.hpp"
-#include "CallbackManager.hpp"
+#include "CameraMoveCallbackManager.hpp"
 
 
 // Window dimensions
@@ -201,11 +201,9 @@ class App : public BaseApp {
 	float scale_tmp = 1;
 	glm::vec3 pos{1.0f, 0.0f, 4.0f};
 
-	CallbackManager cbManager {};
+	CameraMoveCallbackManager cmcbManager {};
 	Camera camera{glm::vec3(0.0f, 0.0f, 3.0f)};
-	bool keys[1024];
-	GLfloat lastX = 400, lastY = 300;
-	bool firstMouse = true;
+	GLfloat currentFrame;
 	GLfloat deltaTime = 0.0f;
 	GLfloat lastFrame = 0.0f;
 
@@ -215,7 +213,7 @@ class App : public BaseApp {
 		// glfwSetKeyCallback(window, key_callback);
 
 		glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
-		cbManager.setCallbacks(window, &camera);
+		cmcbManager.setCallbacks(window, &camera);
 
 		ImGui::StyleColorsLight();
 		glClearColor(1.0, 0.87, 0.83, 1.0);
@@ -273,9 +271,10 @@ class App : public BaseApp {
 
 	void Update(float dTime) override {
         // Set frame time
-        GLfloat currentFrame = glfwGetTime();
+        currentFrame = glfwGetTime();
         deltaTime = currentFrame - lastFrame;
         lastFrame = currentFrame;
+		cmcbManager.applyPlayerMoveControllerChanges(deltaTime);
 
 		glfwPollEvents();
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -315,7 +314,8 @@ class App : public BaseApp {
 
         glm::mat4 projection {1.0f};
 		if (!ProjectionType)
-        	projection = glm::perspective(45.0f, (GLfloat)WIDTH / (GLfloat)HEIGHT, 0.1f, 100.0f);
+        	// projection = glm::perspective(45.0f, (GLfloat)WIDTH / (GLfloat)HEIGHT, 0.1f, 100.0f);
+        	projection = glm::perspective(camera.Zoom, (GLfloat)WIDTH / (GLfloat)HEIGHT, 0.1f, 100.0f);
 		else
 			projection = glm::ortho(-4.0f, 4.0f, -3.0f, 3.0f, 0.1f, 100.0f );
 
@@ -337,6 +337,8 @@ class App : public BaseApp {
 		// glBindVertexArray(vao_rect);
 		// glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 		// glBindVertexArray(0);
+
+		// TODO кнопка для остновки двжиения камеры
 
 		static const std::array<glm::vec3, 3> positions = {
 			glm::vec3(0.0f, 3.0f, 0.0f),

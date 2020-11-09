@@ -52,7 +52,7 @@ FILE(GLOB sources
   "${CMAKE_CURRENT_SOURCE_DIR}/source/BaseApp.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/source/Shader.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/source/main.cpp"
-  "${CMAKE_CURRENT_SOURCE_DIR}/source/CallbackManager.cpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/source/CameraMoveCallbackManager.cpp"
 
   "${CMAKE_CURRENT_SOURCE_DIR}/extern/GLAD/glad/glad.c"
   "${CMAKE_CURRENT_SOURCE_DIR}/extern/imgui/imgui_impl_opengl3.cpp"
