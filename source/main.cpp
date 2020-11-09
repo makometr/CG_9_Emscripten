@@ -210,7 +210,6 @@ class App : public BaseApp {
 
 	void Start() override {
 		glEnable(GL_DEPTH_TEST);
-		// glfwSetKeyCallback(window, key_callback);
 
 		glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 		cmcbManager.setCallbacks(window, &camera);
@@ -274,7 +273,8 @@ class App : public BaseApp {
         currentFrame = glfwGetTime();
         deltaTime = currentFrame - lastFrame;
         lastFrame = currentFrame;
-		cmcbManager.applyPlayerMoveControllerChanges(deltaTime);
+		if (cmcbManager.getCameraActiveStatus())
+			cmcbManager.applyPlayerMoveControllerChanges(deltaTime);
 
 		glfwPollEvents();
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -337,8 +337,6 @@ class App : public BaseApp {
 		// glBindVertexArray(vao_rect);
 		// glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 		// glBindVertexArray(0);
-
-		// TODO кнопка для остновки двжиения камеры
 
 		static const std::array<glm::vec3, 3> positions = {
 			glm::vec3(0.0f, 3.0f, 0.0f),

@@ -7,6 +7,7 @@
 class CameraMoveCallbackManager {
 public:
     CameraMoveCallbackManager() = default;
-    void setCallbacks(GLFWwindow* winPtr, Camera* camPtr);
-    void applyPlayerMoveControllerChanges(GLfloat deltaTime);
+    void setCallbacks(GLFWwindow* winPtr, Camera* camPtr) const;
+    void applyPlayerMoveControllerChanges(GLfloat deltaTime) const;
+    bool getCameraActiveStatus() const;
 };
