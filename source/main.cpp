@@ -24,6 +24,7 @@
 #include "Camera.hpp"
 #include "CallbackManager.hpp"
 
+
 // Window dimensions
 static constexpr GLuint WIDTH = 800, HEIGHT = 600;
 
@@ -95,19 +96,19 @@ private:
 };
 
 
-class Mesh {
-public:
-	// void draw(GLuint shaderProgram) {
-	// 	glUseProgram(shaderProgram);
-	void draw() {
-		glUseProgram(shaderProgram);
-		glBindVertexArray(vao);
-		glDrawElements(GL_TRIANGLES, vertsNumber, GL_UNSIGNED_INT, static_cast<void*>(0));		
-		glBindVertexArray(0);
-	}
-private:
-	GLuint vao, vertsNumber, shaderProgram;
-};
+// class Mesh {
+// public:
+// 	// void draw(GLuint shaderProgram) {
+// 	// 	glUseProgram(shaderProgram);
+// 	void draw() {
+// 		glUseProgram(shaderProgram);
+// 		glBindVertexArray(vao);
+// 		glDrawElements(GL_TRIANGLES, vertsNumber, GL_UNSIGNED_INT, static_cast<void*>(0));		
+// 		glBindVertexArray(0);
+// 	}
+// private:
+// 	GLuint vao, vertsNumber, shaderProgram;
+// };
 
 class App : public BaseApp {
 
