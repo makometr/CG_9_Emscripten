@@ -1,11 +1,6 @@
-#include "glad/glad.h"
-#define GLFW_INCLUDE_NONE
+#pragma once
+
 #include <GLFW/glfw3.h>
-
-#include <glm/gtc/type_ptr.hpp>
-
-#include <array>
-#include <iostream>
 
 #include "Camera.hpp"
 

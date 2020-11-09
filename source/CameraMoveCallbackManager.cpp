@@ -1,10 +1,14 @@
+#include <array>
+#include <iostream>
+
 #include "Camera.hpp"
 #include "CameraMoveCallbackManager.hpp"
 
-static Camera* camera = nullptr;
-static std::array<bool, 1024> keys;
 
-// Function prototypes
+static Camera* camera = nullptr;
+static std::array<bool, 1024> keys = {false};
+
+// Callbacks prototypes (glfw requirments)
 inline void key_callback(GLFWwindow* window, int key, int scancode, int action, int mode);
 inline void mouse_callback(GLFWwindow* window, double xpos, double ypos);
 inline void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);

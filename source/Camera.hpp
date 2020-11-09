@@ -21,11 +21,11 @@ enum Camera_Movement {
 };
 
 // Default camera values
-const GLfloat YAW        = -90.0f;
-const GLfloat PITCH      =  0.0f;
-const GLfloat SPEED      =  3.0f;
-const GLfloat SENSITIVTY =  0.25f;
-const GLfloat ZOOM       =  45.0f;
+inline constexpr GLfloat YAW        = -90.0f;
+inline constexpr GLfloat PITCH      =  0.0f;
+inline constexpr GLfloat SPEED      =  3.0f;
+inline constexpr GLfloat SENSITIVTY =  0.25f;
+inline constexpr GLfloat ZOOM       =  45.0f;
 
 
 class Camera {
@@ -96,7 +96,7 @@ public:
         }
 
         GLfloat xoffset = xpos - lastX;
-        GLfloat yoffset = lastY - ypos;  // Reversed since y-coordinates go from bottom to left
+        GLfloat yoffset = lastY - ypos;
         
         lastX = xpos;
         lastY = ypos;
