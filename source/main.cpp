@@ -59,8 +59,9 @@ enum class ViewType {
 // };
 
 class LightSourceCube {
+public:
 	LightSourceCube(glm::vec3 position) : position(position) {}
-
+	
 
 	void initBuffers() { 
     	std::array<GLfloat, 108> vertices = {
@@ -108,20 +109,50 @@ class LightSourceCube {
     };
 		GLuint VBO;
 		glGenVertexArrays(1, &VAO);
-		glBindVertexArray(VAO);
 		glGenBuffers(1, &VBO);
+
 		glBindBuffer(GL_ARRAY_BUFFER, VBO);
 		glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices.data(), GL_STATIC_DRAW);
-		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(GLfloat), (GLvoid*)0);
+
+		glBindVertexArray(VAO);
+		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GLfloat), (GLvoid*)0);
 		glEnableVertexAttribArray(0);
-		glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(GLfloat), (GLvoid*)(3* sizeof(GLfloat)));
-		glEnableVertexAttribArray(1);
 		glBindBuffer(GL_ARRAY_BUFFER, 0);
 		glBindVertexArray(0);	
-}
+	}
+
+	void updateTransfrom(const glm::mat4& view, int e) {
+		glm::mat4 model {1.0f}; 
+		model = glm::translate(model, position);
+		model = glm::scale(model, glm::vec3(1.0, 1.0, 1.0));
+		glm::mat4 projection {1.0f};
+		if (!e)
+        	projection = glm::perspective(45.0f, (GLfloat)WIDTH / (GLfloat)HEIGHT, 0.1f, 100.0f);
+		else
+			projection = glm::ortho(-4.0f, 4.0f, -3.0f, 3.0f, 0.1f, 100.0f );
+		transformMatrix = projection * view * model;
+	}
+	
+	void draw(const Shader& shderProgramm) const {
+		GLuint transformLoc = glGetUniformLocation(shderProgramm.getId(), "transform");
+		glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(transformMatrix));
+
+		glBindVertexArray(VAO);
+		glDrawArrays(GL_TRIANGLES, 0, 36);
+		glBindVertexArray(0);
+	}
+
+	void setColor(glm::vec3 newColor) {
+		color = newColor;
+	}
+
+	glm::vec3 getColor() const {
+		return color;
+	}
 
 
 private:
+	glm::vec3 color {1.0f};
 	GLuint VAO;
 	glm::mat4 transformMatrix {1.0f};
 	glm::vec3 position {0.0f};
@@ -205,11 +236,14 @@ class App : public BaseApp {
 	GLuint VAO_cube, VBO_cube, EBO_cube;
 	GLuint VAO = 0, VBO = 0;
 	GLuint vao_rect, vbo_rect, ebo_rect;
+	
 	Shader basicShader{"resources/shaders/basic.vs", "resources/shaders/basic.fs"};
 	Shader axesShader{"resources/shaders/axes.vs", "resources/shaders/basic.fs"};
 	Shader pointLightShader{"resources/shaders/point_light.vs", "resources/shaders/point_light.fs"};
 
 	Axes axes;
+
+	LightSourceCube lightCube{glm::vec3{0.0f, 0.1f, 0.0f}};
 
 	glm::vec3 position {0.0f};
 	glm::vec3 rotate {0.0f};
@@ -222,6 +256,8 @@ class App : public BaseApp {
 	GLfloat currentFrame;
 	GLfloat deltaTime = 0.0f;
 	GLfloat lastFrame = 0.0f;
+
+	glm::vec3 tmp_light_color {1.0f};
 
 
 	void Start() override {
@@ -266,6 +302,7 @@ class App : public BaseApp {
 		glBindVertexArray(0);
 		
 		axes.initBuffers();
+		lightCube.initBuffers();
 		glGenVertexArrays(1, &VAO_cube);
 		glGenBuffers(1, &VBO_cube);
 		glGenBuffers(1, &EBO_cube);
@@ -305,6 +342,7 @@ class App : public BaseApp {
 		ImGui::SliderFloat("Y Rotate", &rotate.y, -360.0, 360.0);
 		ImGui::SliderFloat("Z Rotate", &rotate.z, -360.0, 360.0);
 		ImGui::SliderFloat("Scale", &scale_tmp, -5.0, 5.0);
+		ImGui::SliderFloat3("Light Color", glm::value_ptr(tmp_light_color), 0, 1);
 
 		static int ProjectionType = 0;
         ImGui::RadioButton("Perspective", &ProjectionType, 0);
@@ -315,6 +353,10 @@ class App : public BaseApp {
 		// ImGui::ShowDemoWindow();
 
 		basicShader.use();
+		// передаем в шейдер цвет источника света
+		GLint lightColorLoc = glGetUniformLocation(basicShader.getId(), "lightColor");
+		glUniform3f(lightColorLoc,  tmp_light_color.r, tmp_light_color.g, tmp_light_color.b);
+
 		glm::mat4 model {1.0f}; 
 		rotate = glm::vec3((GLfloat)(int(glfwGetTime() * speed) % 360));
 		model = glm::translate(model, glm::vec3(position.x/10, position.y/10, position.z/10));
@@ -337,7 +379,6 @@ class App : public BaseApp {
 
 		glBindVertexArray(VAO); // к объекту вершинного масиива привязыаем vao
 		glBindBuffer(GL_ARRAY_BUFFER, VBO);
-		glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices.data(), GL_DYNAMIC_DRAW);
 		glDrawArrays(GL_TRIANGLES, 0, 36);
 		glBindVertexArray(0); 
 
@@ -381,9 +422,14 @@ class App : public BaseApp {
 		// glBindVertexArray(VAO_cube);
 		// glDrawElements(GL_LINES, 4*6, GL_UNSIGNED_INT, 0);
 
+
 		axesShader.use();
 		axes.updateTransfrom(view, ProjectionType);
 		axes.draw(axesShader);
+
+		pointLightShader.use();
+		lightCube.updateTransfrom(view, ProjectionType);
+		lightCube.draw(pointLightShader);
 	}
 
 	void End() override {
