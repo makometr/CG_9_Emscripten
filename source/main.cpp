@@ -60,15 +60,52 @@ enum class ViewType {
 
 class LightSourceCube {
 	LightSourceCube(glm::vec3 position) : position(position) {}
-	void initBuffers() {
-	std::array<float, 6*(3+3)> vertices = {
-			-1.0,  0.0,  0.0, 1.0,  0.0,  0.0,
-			1.0,  0.0,  0.0, 1.0,  0.0,  0.0,
-			0.0, -1.0,  0.0, 0.0,  1.0,  0.0,
-			0.0,  1.0,  0.0, 0.0,  1.0,  0.0,
-			0.0,  0.0, -1.0, 0.0,  0.0,  1.0,
-			0.0,  0.0,  1.0, 0.0,  0.0,  1.0,
-		};
+
+
+	void initBuffers() { 
+    	std::array<GLfloat, 108> vertices = {
+        -0.5f, -0.5f, -0.5f,
+         0.5f, -0.5f, -0.5f,
+         0.5f,  0.5f, -0.5f,
+         0.5f,  0.5f, -0.5f,
+        -0.5f,  0.5f, -0.5f,
+        -0.5f, -0.5f, -0.5f,
+
+        -0.5f, -0.5f,  0.5f,
+         0.5f, -0.5f,  0.5f,
+         0.5f,  0.5f,  0.5f,
+         0.5f,  0.5f,  0.5f,
+        -0.5f,  0.5f,  0.5f,
+        -0.5f, -0.5f,  0.5f,
+
+        -0.5f,  0.5f,  0.5f,
+        -0.5f,  0.5f, -0.5f,
+        -0.5f, -0.5f, -0.5f,
+        -0.5f, -0.5f, -0.5f,
+        -0.5f, -0.5f,  0.5f,
+        -0.5f,  0.5f,  0.5f,
+
+         0.5f,  0.5f,  0.5f,
+         0.5f,  0.5f, -0.5f,
+         0.5f, -0.5f, -0.5f,
+         0.5f, -0.5f, -0.5f,
+         0.5f, -0.5f,  0.5f,
+         0.5f,  0.5f,  0.5f,
+
+        -0.5f, -0.5f, -0.5f,
+         0.5f, -0.5f, -0.5f,
+         0.5f, -0.5f,  0.5f,
+         0.5f, -0.5f,  0.5f,
+        -0.5f, -0.5f,  0.5f,
+        -0.5f, -0.5f, -0.5f,
+
+        -0.5f,  0.5f, -0.5f,
+         0.5f,  0.5f, -0.5f,
+         0.5f,  0.5f,  0.5f,
+         0.5f,  0.5f,  0.5f,
+        -0.5f,  0.5f,  0.5f,
+        -0.5f,  0.5f, -0.5f
+    };
 		GLuint VBO;
 		glGenVertexArrays(1, &VAO);
 		glBindVertexArray(VAO);
@@ -170,6 +207,7 @@ class App : public BaseApp {
 	GLuint vao_rect, vbo_rect, ebo_rect;
 	Shader basicShader{"resources/shaders/basic.vs", "resources/shaders/basic.fs"};
 	Shader axesShader{"resources/shaders/axes.vs", "resources/shaders/basic.fs"};
+	Shader pointLightShader{"resources/shaders/point_light.vs", "resources/shaders/point_light.fs"};
 
 	Axes axes;
 
