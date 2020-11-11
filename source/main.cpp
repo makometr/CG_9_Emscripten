@@ -24,6 +24,7 @@
 #include "Camera.hpp"
 #include "CameraMoveCallbackManager.hpp"
 #include "ogl_objects/AxesOpenGL.hpp"
+#include "ogl_objects/StandardCube.hpp"
 
 
 // Window dimensions
@@ -58,105 +59,6 @@ enum class ViewType {
 // 	GLuint vao, vertsNumber, shaderProgram;
 // };
 
-class LightSourceCube {
-public:
-	LightSourceCube(glm::vec3 position) : position(position) {}
-	
-
-	void initBuffers() { 
-    	std::array<GLfloat, 108> vertices = {
-        -0.5f, -0.5f, -0.5f,
-         0.5f, -0.5f, -0.5f,
-         0.5f,  0.5f, -0.5f,
-         0.5f,  0.5f, -0.5f,
-        -0.5f,  0.5f, -0.5f,
-        -0.5f, -0.5f, -0.5f,
-
-        -0.5f, -0.5f,  0.5f,
-         0.5f, -0.5f,  0.5f,
-         0.5f,  0.5f,  0.5f,
-         0.5f,  0.5f,  0.5f,
-        -0.5f,  0.5f,  0.5f,
-        -0.5f, -0.5f,  0.5f,
-
-        -0.5f,  0.5f,  0.5f,
-        -0.5f,  0.5f, -0.5f,
-        -0.5f, -0.5f, -0.5f,
-        -0.5f, -0.5f, -0.5f,
-        -0.5f, -0.5f,  0.5f,
-        -0.5f,  0.5f,  0.5f,
-
-         0.5f,  0.5f,  0.5f,
-         0.5f,  0.5f, -0.5f,
-         0.5f, -0.5f, -0.5f,
-         0.5f, -0.5f, -0.5f,
-         0.5f, -0.5f,  0.5f,
-         0.5f,  0.5f,  0.5f,
-
-        -0.5f, -0.5f, -0.5f,
-         0.5f, -0.5f, -0.5f,
-         0.5f, -0.5f,  0.5f,
-         0.5f, -0.5f,  0.5f,
-        -0.5f, -0.5f,  0.5f,
-        -0.5f, -0.5f, -0.5f,
-
-        -0.5f,  0.5f, -0.5f,
-         0.5f,  0.5f, -0.5f,
-         0.5f,  0.5f,  0.5f,
-         0.5f,  0.5f,  0.5f,
-        -0.5f,  0.5f,  0.5f,
-        -0.5f,  0.5f, -0.5f
-    };
-		GLuint VBO;
-		glGenVertexArrays(1, &VAO);
-		glGenBuffers(1, &VBO);
-
-		glBindBuffer(GL_ARRAY_BUFFER, VBO);
-		glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices.data(), GL_STATIC_DRAW);
-
-		glBindVertexArray(VAO);
-		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GLfloat), (GLvoid*)0);
-		glEnableVertexAttribArray(0);
-		glBindBuffer(GL_ARRAY_BUFFER, 0);
-		glBindVertexArray(0);	
-	}
-
-	void updateTransfrom(const glm::mat4& view, int e) {
-		glm::mat4 model {1.0f}; 
-		model = glm::translate(model, position);
-		model = glm::scale(model, glm::vec3(1.0, 1.0, 1.0));
-		glm::mat4 projection {1.0f};
-		if (!e)
-        	projection = glm::perspective(45.0f, (GLfloat)WIDTH / (GLfloat)HEIGHT, 0.1f, 100.0f);
-		else
-			projection = glm::ortho(-4.0f, 4.0f, -3.0f, 3.0f, 0.1f, 100.0f );
-		transformMatrix = projection * view * model;
-	}
-	
-	void draw(const Shader& shderProgramm) const {
-		GLuint transformLoc = glGetUniformLocation(shderProgramm.getId(), "transform");
-		glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(transformMatrix));
-
-		glBindVertexArray(VAO);
-		glDrawArrays(GL_TRIANGLES, 0, 36);
-		glBindVertexArray(0);
-	}
-
-	void setColor(glm::vec3 newColor) {
-		color = newColor;
-	}
-
-	glm::vec3 getColor() const {
-		return color;
-	}
-
-
-private:
-	glm::vec3 color {1.0f};
-	GLuint VAO;
-	glm::mat4 transformMatrix {1.0f};
-	glm::vec3 position {0.0f};
-};
 
 class App : public BaseApp {
 
@@ -241,9 +143,9 @@ class App : public BaseApp {
 	Shader axesShader{"resources/shaders/axes.vs", "resources/shaders/basic.fs"};
 	Shader pointLightShader{"resources/shaders/point_light.vs", "resources/shaders/point_light.fs"};
 
-	Axes axes;
+	Axes axes {};
 
-	LightSourceCube lightCube{glm::vec3{0.0f, 0.1f, 0.0f}};
+	StandardCube lightCube {};
 
 	glm::vec3 position {0.0f};
 	glm::vec3 rotate {0.0f};
@@ -355,7 +257,7 @@ class App : public BaseApp {
 		basicShader.use();
 		// передаем в шейдер цвет источника света
 		GLint lightColorLoc = glGetUniformLocation(basicShader.getId(), "lightColor");
-		glUniform3f(lightColorLoc,  tmp_light_color.r, tmp_light_color.g, tmp_light_color.b);
+		glUniform3f(lightColorLoc, tmp_light_color.r, tmp_light_color.g, tmp_light_color.b);
 
 		glm::mat4 model {1.0f}; 
 		rotate = glm::vec3((GLfloat)(int(glfwGetTime() * speed) % 360));
@@ -430,9 +332,15 @@ class App : public BaseApp {
 			glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(transformMatrix));
 		});
 
-		pointLightShader.use();
-		lightCube.updateTransfrom(view, ProjectionType);
-		lightCube.draw(pointLightShader);
+		lightCube.draw(pointLightShader, [&projection, &view] (const Shader& shaderProg) {
+			glm::mat4 model {1.0f};
+			model = glm::translate(model, glm::vec3(0.0f, 0.5f, 0.0f));
+			model = glm::scale(model, glm::vec3(0.2, 0.2, 0.2));
+
+			glm::mat4 transformMatrix = projection * view * model;
+			GLuint transformLoc = glGetUniformLocation(shaderProg.getId(), "transform");
+			glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(transformMatrix));
+		});
 	}
 
 	void End() override {
