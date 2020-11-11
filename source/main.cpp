@@ -423,9 +423,12 @@ class App : public BaseApp {
 		// glDrawElements(GL_LINES, 4*6, GL_UNSIGNED_INT, 0);
 
 
-		axesShader.use();
-		axes.updateTransfrom(view, ProjectionType);
-		axes.draw(axesShader);
+		axes.draw(axesShader, [&projection, &view] (const Shader& shaderProg) {
+			glm::mat4 model = glm::scale(glm::mat4(1.0f), glm::vec3(100, 100, 100));
+			glm::mat4 transformMatrix = projection * view * model;
+			GLuint transformLoc = glGetUniformLocation(shaderProg.getId(), "transform");
+			glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(transformMatrix));
+		});
 
 		pointLightShader.use();
 		lightCube.updateTransfrom(view, ProjectionType);
