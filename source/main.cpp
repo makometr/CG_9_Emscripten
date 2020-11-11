@@ -135,17 +135,18 @@ class App : public BaseApp {
         4,7, 7,6, 6,5,
         6,2, 7,3 
     };
-	GLuint VAO_cube, VBO_cube, EBO_cube;
+	// GLuint VAO_cube, VBO_cube, EBO_cube;
 	GLuint VAO = 0, VBO = 0;
-	GLuint vao_rect, vbo_rect, ebo_rect;
 	
 	Shader basicShader{"resources/shaders/basic.vs", "resources/shaders/basic.fs"};
 	Shader axesShader{"resources/shaders/axes.vs", "resources/shaders/basic.fs"};
 	Shader pointLightShader{"resources/shaders/point_light.vs", "resources/shaders/point_light.fs"};
+	Shader lightedObjectShader{"resources/shaders/lighted.vs", "resources/shaders/lighted.fs"};
 
 	Axes axes {};
 
 	StandardCube lightCube {};
+	StandardCube figure_cube {};
 
 	glm::vec3 position {0.0f};
 	glm::vec3 rotate {0.0f};
@@ -160,6 +161,7 @@ class App : public BaseApp {
 	GLfloat lastFrame = 0.0f;
 
 	glm::vec3 tmp_light_color {1.0f};
+	glm::vec3 lightPos {0.0f, 2.0f, 0.0f};
 
 
 	void Start() override {
@@ -185,16 +187,6 @@ class App : public BaseApp {
 		glBindBuffer(GL_ARRAY_BUFFER, 0);
 		glBindVertexArray(0);
 
-
-		glGenVertexArrays(1, &vao_rect);
-		glGenBuffers(1, &vbo_rect);
-		glGenBuffers(1, &ebo_rect);
-
-		glBindVertexArray(vao_rect);
-		glBindBuffer(GL_ARRAY_BUFFER, vbo_rect);
-		glBufferData(GL_ARRAY_BUFFER, sizeof(rect_vs), rect_vs.data(), GL_DYNAMIC_DRAW);
-		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo_rect);
-		glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_DYNAMIC_DRAW);
 		
 		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void *)0);
 		glEnableVertexAttribArray(0);
@@ -205,21 +197,23 @@ class App : public BaseApp {
 		
 		axes.initBuffers();
 		lightCube.initBuffers();
-		glGenVertexArrays(1, &VAO_cube);
-		glGenBuffers(1, &VBO_cube);
-		glGenBuffers(1, &EBO_cube);
-		glBindVertexArray(VAO_cube);
+		figure_cube.initBuffers();
 
-		glBindBuffer(GL_ARRAY_BUFFER, VBO_cube);
-		glBufferData(GL_ARRAY_BUFFER, sizeof(vertices_cube), vertices_cube.data(), GL_STATIC_DRAW);
+		// glGenVertexArrays(1, &VAO_cube);
+		// glGenBuffers(1, &VBO_cube);
+		// glGenBuffers(1, &EBO_cube);
+		// glBindVertexArray(VAO_cube);
 
-		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO_cube);
-		glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices_cube), indices_cube.data(), GL_STATIC_DRAW);
+		// glBindBuffer(GL_ARRAY_BUFFER, VBO_cube);
+		// glBufferData(GL_ARRAY_BUFFER, sizeof(vertices_cube), vertices_cube.data(), GL_STATIC_DRAW);
 
-		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GLfloat), (GLvoid*)0);
-		glEnableVertexAttribArray(0);
-		glBindBuffer(GL_ARRAY_BUFFER, 0);
-		glBindVertexArray(0);
+		// glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO_cube);
+		// glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices_cube), indices_cube.data(), GL_STATIC_DRAW);
+
+		// glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GLfloat), (GLvoid*)0);
+		// glEnableVertexAttribArray(0);
+		// glBindBuffer(GL_ARRAY_BUFFER, 0);
+		// glBindVertexArray(0);
 	}
 
 	void Update(float dTime) override {
@@ -260,7 +254,6 @@ class App : public BaseApp {
 		glUniform3f(lightColorLoc, tmp_light_color.r, tmp_light_color.g, tmp_light_color.b);
 
 		glm::mat4 model {1.0f}; 
-		rotate = glm::vec3((GLfloat)(int(glfwGetTime() * speed) % 360));
 		model = glm::translate(model, glm::vec3(position.x/10, position.y/10, position.z/10));
 		model = glm::rotate(model, glm::radians(rotate.x), glm::vec3(1.0, 0.0, 0.0));
 		model = glm::rotate(model, glm::radians(rotate.y), glm::vec3(0.0, 1.0, 0.0));
@@ -279,14 +272,11 @@ class App : public BaseApp {
 		GLuint transformLoc = glGetUniformLocation(basicShader.getId(), "transform");
 		glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(result)); 
 
-		glBindVertexArray(VAO); // к объекту вершинного масиива привязыаем vao
-		glBindBuffer(GL_ARRAY_BUFFER, VBO);
-		glDrawArrays(GL_TRIANGLES, 0, 36);
-		glBindVertexArray(0); 
+		// glBindVertexArray(VAO);
+		// glBindBuffer(GL_ARRAY_BUFFER, VBO);
+		// glDrawArrays(GL_TRIANGLES, 0, 36);
+		// glBindVertexArray(0); 
 
-		// glBindVertexArray(vao_rect);
-		// glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
-		// glBindVertexArray(0);
 
 		static const std::array<glm::vec3, 3> positions = {
 			glm::vec3(0.0f, 3.0f, 0.0f),
@@ -332,9 +322,31 @@ class App : public BaseApp {
 			glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(transformMatrix));
 		});
 
+		glm::vec3 rotate = glm::vec3((GLfloat)(int(glfwGetTime() * speed) % 360));
+		figure_cube.draw(lightedObjectShader, [&projection, &view, &rotate, position=position, scale_tmp=scale_tmp, lightPos=lightPos] (const Shader& shaderProg) {
+			glm::mat4 model {1.0f};
+			model = glm::translate(model, glm::vec3(position.x/10, position.y/10, position.z/10));
+			model = glm::rotate(model, glm::radians(rotate.x), glm::vec3(1.0, 0.0, 0.0));
+			model = glm::rotate(model, glm::radians(rotate.y), glm::vec3(0.0, 1.0, 0.0));
+			model = glm::rotate(model, glm::radians(rotate.z), glm::vec3(0.0, 0.0, 1.0));
+			model = glm::scale(model, glm::vec3(scale_tmp));
+
+			glm::mat4 transformMatrix = projection * view * model;
+			GLuint modelLoc = glGetUniformLocation(shaderProg.getId(), "model");
+			glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
+			GLuint transformLoc = glGetUniformLocation(shaderProg.getId(), "transform");
+			glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(transformMatrix));
+			GLint lightPosLoc = glGetUniformLocation(shaderProg.getId(), "lightPos");
+			glUniform3fv(lightPosLoc, 1, glm::value_ptr(lightPos));
+			GLint lightColorPosLoc = glGetUniformLocation(shaderProg.getId(), "lightColor");
+			glUniform3fv(lightColorPosLoc, 1, glm::value_ptr(glm::vec3(1.0f)));
+			GLint objectColorLoc = glGetUniformLocation(shaderProg.getId(), "objectColor");
+			glUniform3fv(objectColorLoc, 1, glm::value_ptr(glm::vec3(1.0f, 0.0f, 0.0f)));
+		});
+
 		lightCube.draw(pointLightShader, [&projection, &view] (const Shader& shaderProg) {
 			glm::mat4 model {1.0f};
-			model = glm::translate(model, glm::vec3(0.0f, 0.5f, 0.0f));
+			model = glm::translate(model, glm::vec3(0.0f, 2.0f, 0.0f));
 			model = glm::scale(model, glm::vec3(0.2, 0.2, 0.2));
 
 			glm::mat4 transformMatrix = projection * view * model;

@@ -85,7 +85,7 @@ std::optional<std::string> Shader::loadFromFile(const std::string &path)
 	file.open(path);
 	if (file.is_open()) {
 		std::string original{std::istreambuf_iterator<char>(file), std::istreambuf_iterator<char>()};
-		std::cout << original << std::endl;
+		// std::cout << original << std::endl;
 		const auto versionBegin    = original.find("#version");
 		const auto versionEnd      = original.find('\n', versionBegin);
 		const auto versionLen      = versionEnd-versionBegin+1;
