@@ -43,101 +43,7 @@ enum class ViewType {
 	Orto
 };
 
-
-
-// class Mesh {
-// public:
-// 	// void draw(GLuint shaderProgram) {
-// 	// 	glUseProgram(shaderProgram);
-// 	void draw() {
-// 		glUseProgram(shaderProgram);
-// 		glBindVertexArray(vao);
-// 		glDrawElements(GL_TRIANGLES, vertsNumber, GL_UNSIGNED_INT, static_cast<void*>(0));		
-// 		glBindVertexArray(0);
-// 	}
-// private:
-// 	GLuint vao, vertsNumber, shaderProgram;
-// };
-
-
 class App : public BaseApp {
-
-	std::array<float, 6*6*3*2> vertices = {
-		-0.5f, -0.5f, -0.5f,  0.0f, 0.0f, 0.0f,
-		0.5f, -0.5f, -0.5f,  1.0f, 0.0f, 0.0f,
-		0.5f,  0.5f, -0.5f,  1.0f, 1.0f, 0.0f,
-		0.5f,  0.5f, -0.5f,  1.0f, 1.0f, 0.0f,
-		-0.5f,  0.5f, -0.5f,  0.0f, 1.0f, 0.0f,
-		-0.5f, -0.5f, -0.5f,  0.0f, 0.0f, 0.0f,
-
-		-0.5f, -0.5f,  0.5f,  0.0f, 0.0f, 0.0f,
-		0.5f, -0.5f,  0.5f,  1.0f, 0.0f, 0.0f,
-		0.5f,  0.5f,  0.5f,  1.0f, 1.0f, 0.0f,
-		0.5f,  0.5f,  0.5f,  1.0f, 1.0f, 0.0f,
-		-0.5f,  0.5f,  0.5f,  0.0f, 1.0f, 0.0f,
-		-0.5f, -0.5f,  0.5f,  0.0f, 0.0f, 0.0f,
-
-		-0.5f,  0.5f,  0.5f,  1.0f, 0.0f, 0.0f,
-		-0.5f,  0.5f, -0.5f,  1.0f, 1.0f, 0.0f,
-		-0.5f, -0.5f, -0.5f,  0.0f, 1.0f, 0.0f,
-		-0.5f, -0.5f, -0.5f,  0.0f, 1.0f, 0.0f,
-		-0.5f, -0.5f,  0.5f,  0.0f, 0.0f, 0.0f,
-		-0.5f,  0.5f,  0.5f,  1.0f, 0.0f, 0.0f,
-
-		0.5f,  0.5f,  0.5f,  1.0f, 0.0f, 0.0f,
-		0.5f,  0.5f, -0.5f,  1.0f, 1.0f, 0.0f,
-		0.5f, -0.5f, -0.5f,  0.0f, 1.0f, 0.0f,
-		0.5f, -0.5f, -0.5f,  0.0f, 1.0f, 0.0f,
-		0.5f, -0.5f,  0.5f,  0.0f, 0.0f, 0.0f,
-		0.5f,  0.5f,  0.5f,  1.0f, 0.0f, 0.0f,
-
-		-0.5f, -0.5f, -0.5f,  0.0f, 1.0f, 0.0f,
-		0.5f, -0.5f, -0.5f,  1.0f, 1.0f, 0.0f,
-		0.5f, -0.5f,  0.5f,  1.0f, 0.0f, 0.0f,
-		0.5f, -0.5f,  0.5f,  1.0f, 0.0f, 0.0f,
-		-0.5f, -0.5f,  0.5f,  0.0f, 0.0f, 0.0f,
-		-0.5f, -0.5f, -0.5f,  0.0f, 1.0f, 0.0f,
-
-		-0.5f,  0.5f, -0.5f,  0.0f, 1.0f, 0.0f,
-		0.5f,  0.5f, -0.5f,  1.0f, 1.0f, 0.0f,
-		0.5f,  0.5f,  0.5f,  1.0f, 0.0f, 0.0f,
-		0.5f,  0.5f,  0.5f,  1.0f, 0.0f, 0.0f,
-		-0.5f,  0.5f,  0.5f,  0.0f, 0.0f, 0.0f,
-		-0.5f,  0.5f, -0.5f,  0.0f, 1.0f, 0.0f,
-	};
-
-	std::array<Vertex, 4> rect_vs = {
-		Vertex{{0.5f, 0.5f, 0.0f}, {1.0f, 0.0f, 0.0f}},
-		Vertex{{0.5f, -0.5f, 0.0f}, {0.0f, 1.0f, 0.0f}},
-		Vertex{{-0.5f, -0.5f, 0.0f}, {0.0f, 0.0f, 1.0f}},
-		Vertex{{-0.5f, 0.5f, 0.0f}, {0.5f, 0.0f, 1.0f}}
-	};
-
-	GLuint indices[6] = {  // Помните, что мы начинаем с 0!
-		0, 1, 3,   // Первый треугольник
-		1, 2, 3    // Второй треугольник	
-	};
-	std::array<float, 8*3> vertices_cube = {
-        // Coordinates
-        -0.5,  0.5, 0.5, // N-W
-         0.5,  0.5, 0.5, // N-E
-         0.5, -0.5, 0.5, // S-E
-        -0.5, -0.5, 0.5, // S-W
-
-        -0.5,   0.5,  -0.5,   // N-W
-         0.5,   0.5,  -0.5,   // N-E
-         0.5,  -0.5,  -0.5,   // S-E
-        -0.5,  -0.5,  -0.5,   // S-W
-    };
-    std::array<GLuint, 12*2> indices_cube = {
-        0,1, 1,2, 2,3, 3,0,
-        0,4, 4,5, 5,1,
-        4,7, 7,6, 6,5,
-        6,2, 7,3 
-    };
-	// GLuint VAO_cube, VBO_cube, EBO_cube;
-	GLuint VAO = 0, VBO = 0;
-	
 	Shader basicShader{"resources/shaders/basic.vs", "resources/shaders/basic.fs"};
 	Shader axesShader{"resources/shaders/axes.vs", "resources/shaders/basic.fs"};
 	Shader pointLightShader{"resources/shaders/point_light.vs", "resources/shaders/point_light.fs"};
@@ -162,7 +68,7 @@ class App : public BaseApp {
 
 	glm::vec3 tmp_light_color {1.0f};
 	glm::vec3 lightPos {0.0f, 2.0f, 0.0f};
-
+	float specular;
 
 	void Start() override {
 		glEnable(GL_DEPTH_TEST);
@@ -172,48 +78,10 @@ class App : public BaseApp {
 
 		ImGui::StyleColorsLight();
 		glClearColor(1.0, 0.87, 0.83, 1.0);
-
-		glGenVertexArrays(1, &VAO);
-		glBindVertexArray(VAO);
-
-		glGenBuffers(1, &VBO); // Vertex Buffer Object
-		glBindBuffer(GL_ARRAY_BUFFER, VBO);
-		glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices.data(), GL_DYNAMIC_DRAW);
-
-		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void *)0);
-		glEnableVertexAttribArray(0);
-		glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void *)(3 * sizeof(float)));
-		glEnableVertexAttribArray(1);
-		glBindBuffer(GL_ARRAY_BUFFER, 0);
-		glBindVertexArray(0);
-
-		
-		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void *)0);
-		glEnableVertexAttribArray(0);
-		glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void *)(3 * sizeof(float)));
-		glEnableVertexAttribArray(1);
-		glBindBuffer(GL_ARRAY_BUFFER, 0);
-		glBindVertexArray(0);
 		
 		axes.initBuffers();
 		lightCube.initBuffers();
 		figure_cube.initBuffers();
-
-		// glGenVertexArrays(1, &VAO_cube);
-		// glGenBuffers(1, &VBO_cube);
-		// glGenBuffers(1, &EBO_cube);
-		// glBindVertexArray(VAO_cube);
-
-		// glBindBuffer(GL_ARRAY_BUFFER, VBO_cube);
-		// glBufferData(GL_ARRAY_BUFFER, sizeof(vertices_cube), vertices_cube.data(), GL_STATIC_DRAW);
-
-		// glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO_cube);
-		// glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices_cube), indices_cube.data(), GL_STATIC_DRAW);
-
-		// glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GLfloat), (GLvoid*)0);
-		// glEnableVertexAttribArray(0);
-		// glBindBuffer(GL_ARRAY_BUFFER, 0);
-		// glBindVertexArray(0);
 	}
 
 	void Update(float dTime) override {
@@ -231,14 +99,15 @@ class App : public BaseApp {
 
 		ImGui::Begin("Triangle");
 		ImGui::SliderFloat("Speed", &speed, -100.0, 100.0);
-		ImGui::SliderFloat("Translate: X", &position.x, -100.0, 100.0);
-		ImGui::SliderFloat("Translate: Y", &position.y, -100.0, 100.0);
-		ImGui::SliderFloat("Translate: Z", &position.z, -100.0, 100.0);
+		ImGui::SliderFloat("Translate: X", &lightPos.x, -100.0, 100.0);
+		ImGui::SliderFloat("Translate: Y", &lightPos.y, -100.0, 100.0);
+		ImGui::SliderFloat("Translate: Z", &lightPos.z, -100.0, 100.0);
 		ImGui::SliderFloat("X Rotate", &rotate.x, -360.0, 360.0);
 		ImGui::SliderFloat("Y Rotate", &rotate.y, -360.0, 360.0);
 		ImGui::SliderFloat("Z Rotate", &rotate.z, -360.0, 360.0);
 		ImGui::SliderFloat("Scale", &scale_tmp, -5.0, 5.0);
 		ImGui::SliderFloat3("Light Color", glm::value_ptr(tmp_light_color), 0, 1);
+		ImGui::SliderFloat("Specular###IDFORSLIDER", &specular, 0.001, 100.0);
 
 		static int ProjectionType = 0;
         ImGui::RadioButton("Perspective", &ProjectionType, 0);
@@ -272,10 +141,6 @@ class App : public BaseApp {
 		GLuint transformLoc = glGetUniformLocation(basicShader.getId(), "transform");
 		glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(result)); 
 
-		// glBindVertexArray(VAO);
-		// glBindBuffer(GL_ARRAY_BUFFER, VBO);
-		// glDrawArrays(GL_TRIANGLES, 0, 36);
-		// glBindVertexArray(0); 
 
 
 		static const std::array<glm::vec3, 3> positions = {
@@ -323,8 +188,8 @@ class App : public BaseApp {
 		});
 
 		glm::vec3 rotate = glm::vec3((GLfloat)(int(glfwGetTime() * speed) % 360));
-		figure_cube.draw(lightedObjectShader, [&projection, &view, &rotate, position=position, scale_tmp=scale_tmp, lightPos=lightPos] (const Shader& shaderProg) {
-			glm::mat4 model {1.0f};
+		figure_cube.draw(lightedObjectShader, [&projection, &view, &rotate, cameraPos=camera.Position, position=position, scale_tmp=scale_tmp, lightPos=lightPos, specular=specular] (const Shader& shaderProg) {
+			glm::mat4 model {1.0f}; 
 			model = glm::translate(model, glm::vec3(position.x/10, position.y/10, position.z/10));
 			model = glm::rotate(model, glm::radians(rotate.x), glm::vec3(1.0, 0.0, 0.0));
 			model = glm::rotate(model, glm::radians(rotate.y), glm::vec3(0.0, 1.0, 0.0));
@@ -332,21 +197,33 @@ class App : public BaseApp {
 			model = glm::scale(model, glm::vec3(scale_tmp));
 
 			glm::mat4 transformMatrix = projection * view * model;
-			GLuint modelLoc = glGetUniformLocation(shaderProg.getId(), "model");
-			glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
-			GLuint transformLoc = glGetUniformLocation(shaderProg.getId(), "transform");
-			glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(transformMatrix));
-			GLint lightPosLoc = glGetUniformLocation(shaderProg.getId(), "lightPos");
-			glUniform3fv(lightPosLoc, 1, glm::value_ptr(lightPos));
-			GLint lightColorPosLoc = glGetUniformLocation(shaderProg.getId(), "lightColor");
-			glUniform3fv(lightColorPosLoc, 1, glm::value_ptr(glm::vec3(1.0f)));
-			GLint objectColorLoc = glGetUniformLocation(shaderProg.getId(), "objectColor");
-			glUniform3fv(objectColorLoc, 1, glm::value_ptr(glm::vec3(1.0f, 0.0f, 0.0f)));
+			shaderProg.set("model", model);
+			shaderProg.set("transform", transformMatrix);
+			shaderProg.set("lightPos", lightPos);
+			shaderProg.set("lightColor", glm::vec3(1.0f));
+			shaderProg.set("objectColor", glm::vec3(1.0f, 0.0f, 0.0f));
+			shaderProg.set("viewPos", cameraPos);
+			shaderProg.set("specular", specular);
+
+			// GLuint modelLoc = glGetUniformLocation(shaderProg.getId(), "model");
+			// glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
+			// GLuint transformLoc = glGetUniformLocation(shaderProg.getId(), "transform");
+			// glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(transformMatrix));
+			// GLint lightPosLoc = glGetUniformLocation(shaderProg.getId(), "lightPos");
+			// glUniform3fv(lightPosLoc, 1, glm::value_ptr(lightPos));
+			// GLint lightColorPosLoc = glGetUniformLocation(shaderProg.getId(), "lightColor");
+			// glUniform3fv(lightColorPosLoc, 1, glm::value_ptr(glm::vec3(1.0f)));
+			// GLint objectColorLoc = glGetUniformLocation(shaderProg.getId(), "objectColor");
+			// glUniform3fv(objectColorLoc, 1, glm::value_ptr(glm::vec3(1.0f, 0.0f, 0.0f)));
+			// GLint viewPosLoc = glGetUniformLocation(shaderProg.getId(), "viewPos");
+			// glUniform3fv(viewPosLoc, 1, glm::value_ptr(cameraPos));
+			// GLint specUnif = glGetUniformLocation(shaderProg.getId(), "specular");
+			// glUniform1f(specUnif, specular);
 		});
 
-		lightCube.draw(pointLightShader, [&projection, &view] (const Shader& shaderProg) {
+		lightCube.draw(pointLightShader, [&projection, &view, lightPos=lightPos] (const Shader& shaderProg) {
 			glm::mat4 model {1.0f};
-			model = glm::translate(model, glm::vec3(0.0f, 2.0f, 0.0f));
+			model = glm::translate(model, lightPos);
 			model = glm::scale(model, glm::vec3(0.2, 0.2, 0.2));
 
 			glm::mat4 transformMatrix = projection * view * model;

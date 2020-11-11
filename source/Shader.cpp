@@ -2,6 +2,7 @@
 #include <iostream>
 #include <fstream>
 #include <optional>
+#include <glm/gtc/type_ptr.hpp>
 
 constexpr auto coreVersionLine = "#version 330 core\n";
 constexpr auto esVersionLine   = "#version 300 es\n";
@@ -125,4 +126,27 @@ std::optional<std::string> Shader::loadFromFile(const std::string &path)
 		return std::nullopt;
 	}
 	return std::nullopt;
+}
+
+
+static void checkUniformFound(GLint value, const std::string &name) {
+	if (value == -1) {
+		std::cout << "Error: uniform " << name << " was not found.\n";
+	}
+}
+
+void Shader::set(const std::string& name, const glm::vec3& value) const {
+	GLint uniform = glGetUniformLocation(id, name.c_str());
+	checkUniformFound(uniform, name);
+	glUniform3fv(uniform, 1, glm::value_ptr(value));
+}
+void Shader::set(const std::string& name, const glm::mat4& value) const {
+	GLint uniform = glGetUniformLocation(id, name.c_str());
+	checkUniformFound(uniform, name);
+	glUniformMatrix4fv(uniform, 1, GL_FALSE, glm::value_ptr(value));
+}
+void Shader::set(const std::string& name, float value) const {
+	GLint uniform = glGetUniformLocation(id, name.c_str());
+	checkUniformFound(uniform, name);
+	glUniform1f(uniform, value);
 }
