@@ -97,7 +97,7 @@ class App : public BaseApp {
 
 		ImGui::SetNextWindowSize({300,400}, ImGuiCond_Once);
 
-		ImGui::Begin("Triangle");
+		ImGui::Begin("Light");
 		ImGui::SliderFloat("Speed", &speed, -100.0, 100.0);
 		ImGui::SliderFloat("Translate: X", &lightPos.x, -100.0, 100.0);
 		ImGui::SliderFloat("Translate: Y", &lightPos.y, -100.0, 100.0);
@@ -107,7 +107,7 @@ class App : public BaseApp {
 		ImGui::SliderFloat("Z Rotate", &rotate.z, -360.0, 360.0);
 		ImGui::SliderFloat("Scale", &scale_tmp, -5.0, 5.0);
 		ImGui::SliderFloat3("Light Color", glm::value_ptr(tmp_light_color), 0, 1);
-		ImGui::SliderFloat("Specular###IDFORSLIDER", &specular, 0.001, 100.0);
+		ImGui::SliderFloat("Specular###IDFORSLIDER", &specular, 0.001, 256.0);
 
 		static int ProjectionType = 0;
         ImGui::RadioButton("Perspective", &ProjectionType, 0);
@@ -204,26 +204,11 @@ class App : public BaseApp {
 			shaderProg.set("objectColor", glm::vec3(1.0f, 0.0f, 0.0f));
 			shaderProg.set("viewPos", cameraPos);
 			shaderProg.set("specular", specular);
-
-			// GLuint modelLoc = glGetUniformLocation(shaderProg.getId(), "model");
-			// glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
-			// GLuint transformLoc = glGetUniformLocation(shaderProg.getId(), "transform");
-			// glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(transformMatrix));
-			// GLint lightPosLoc = glGetUniformLocation(shaderProg.getId(), "lightPos");
-			// glUniform3fv(lightPosLoc, 1, glm::value_ptr(lightPos));
-			// GLint lightColorPosLoc = glGetUniformLocation(shaderProg.getId(), "lightColor");
-			// glUniform3fv(lightColorPosLoc, 1, glm::value_ptr(glm::vec3(1.0f)));
-			// GLint objectColorLoc = glGetUniformLocation(shaderProg.getId(), "objectColor");
-			// glUniform3fv(objectColorLoc, 1, glm::value_ptr(glm::vec3(1.0f, 0.0f, 0.0f)));
-			// GLint viewPosLoc = glGetUniformLocation(shaderProg.getId(), "viewPos");
-			// glUniform3fv(viewPosLoc, 1, glm::value_ptr(cameraPos));
-			// GLint specUnif = glGetUniformLocation(shaderProg.getId(), "specular");
-			// glUniform1f(specUnif, specular);
-		});
+		});  
 
 		lightCube.draw(pointLightShader, [&projection, &view, lightPos=lightPos] (const Shader& shaderProg) {
 			glm::mat4 model {1.0f};
-			model = glm::translate(model, lightPos);
+			model = glm::translate(model, glm::vec3{lightPos.x/20, lightPos.y/20, lightPos.z/20});
 			model = glm::scale(model, glm::vec3(0.2, 0.2, 0.2));
 
 			glm::mat4 transformMatrix = projection * view * model;
