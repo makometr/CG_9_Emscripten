@@ -44,31 +44,35 @@ enum class ViewType {
 };
 
 class App : public BaseApp {
-	Shader basicShader{"resources/shaders/basic.vs", "resources/shaders/basic.fs"};
+	// Shader basicShader{"resources/shaders/basic.vs", "resources/shaders/basic.fs"};
 	Shader axesShader{"resources/shaders/axes.vs", "resources/shaders/basic.fs"};
 	Shader pointLightShader{"resources/shaders/point_light.vs", "resources/shaders/point_light.fs"};
 	Shader lightedObjectShader{"resources/shaders/lighted.vs", "resources/shaders/lighted.fs"};
 
 	Axes axes {};
-
 	StandardCube lightCube {};
 	StandardCube figure_cube {};
 
-	glm::vec3 position {0.0f};
-	glm::vec3 rotate {0.0f};
-	glm::vec3 scale {0.0f};
-	float speed = 1;
-	float scale_tmp = 1;
-
 	CameraMoveCallbackManager cmcbManager {};
 	Camera camera{glm::vec3(0.0f, 0.0f, 3.0f)};
+
+	// For camera
 	GLfloat currentFrame;
 	GLfloat deltaTime = 0.0f;
 	GLfloat lastFrame = 0.0f;
 
-	glm::vec3 tmp_light_color {1.0f};
-	glm::vec3 lightPos {0.0f, 2.0f, 0.0f};
-	float specular;
+	// Cube state
+	float cubeRotateSpeed = 1;
+	glm::vec3 cubePosition {0.0f};
+	glm::vec3 cubeRotate {0.0f};
+	GLfloat cubeRotateValue {0.0f};
+	// glm::vec3 cubeScale {0.0f};
+	GLfloat cubeScale {1.0f};
+
+	// Light state
+	glm::vec3 lightPosition {0.0f, 40.0f, 0.0f};
+	glm::vec3 lightColor {1.0f};
+	float specular {128.0f};
 
 	void Start() override {
 		glEnable(GL_DEPTH_TEST);
@@ -78,7 +82,7 @@ class App : public BaseApp {
 
 		ImGui::StyleColorsLight();
 		glClearColor(1.0, 0.87, 0.83, 1.0);
-		
+
 		axes.initBuffers();
 		lightCube.initBuffers();
 		figure_cube.initBuffers();
@@ -95,39 +99,42 @@ class App : public BaseApp {
 		glfwPollEvents();
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-		ImGui::SetNextWindowSize({300,400}, ImGuiCond_Once);
-
-		ImGui::Begin("Light");
-		ImGui::SliderFloat("Speed", &speed, -100.0, 100.0);
-		ImGui::SliderFloat("Translate: X", &lightPos.x, -100.0, 100.0);
-		ImGui::SliderFloat("Translate: Y", &lightPos.y, -100.0, 100.0);
-		ImGui::SliderFloat("Translate: Z", &lightPos.z, -100.0, 100.0);
-		ImGui::SliderFloat("X Rotate", &rotate.x, -360.0, 360.0);
-		ImGui::SliderFloat("Y Rotate", &rotate.y, -360.0, 360.0);
-		ImGui::SliderFloat("Z Rotate", &rotate.z, -360.0, 360.0);
-		ImGui::SliderFloat("Scale", &scale_tmp, -5.0, 5.0);
-		ImGui::SliderFloat3("Light Color", glm::value_ptr(tmp_light_color), 0, 1);
-		ImGui::SliderFloat("Specular###IDFORSLIDER", &specular, 0.001, 256.0);
-
-		static int ProjectionType = 0;
-        ImGui::RadioButton("Perspective", &ProjectionType, 0);
-		ImGui::SameLine();
-        ImGui::RadioButton("Orthographic", &ProjectionType, 1);
+		ImGui::SetNextWindowSize({300, 70}, ImGuiCond_Once);
+		ImGui::SetNextWindowPos({20, 20}, ImGuiCond_Once);
+		ImGui::SetNextWindowCollapsed(false, ImGuiCond_Once);
+		ImGui::Begin("Camera");
+			static int ProjectionType = 0;
+			ImGui::RadioButton("Perspective", &ProjectionType, 0);
+			ImGui::SameLine();
+			ImGui::RadioButton("Orthographic", &ProjectionType, 1);
 		ImGui::End();
 
-		// ImGui::ShowDemoWindow();
 
-		basicShader.use();
-		// передаем в шейдер цвет источника света
-		GLint lightColorLoc = glGetUniformLocation(basicShader.getId(), "lightColor");
-		glUniform3f(lightColorLoc, tmp_light_color.r, tmp_light_color.g, tmp_light_color.b);
+		ImGui::SetNextWindowSize({300, 150}, ImGuiCond_Once);
+		ImGui::SetNextWindowPos({20, 100}, ImGuiCond_Once);
+		ImGui::SetNextWindowCollapsed(false, ImGuiCond_Once);
+		ImGui::Begin("Light");
+			ImGui::SliderFloat("Translate: X", &lightPosition.x, -100.0, 100.0);
+			ImGui::SliderFloat("Translate: Y", &lightPosition.y, -100.0, 100.0);
+			ImGui::SliderFloat("Translate: Z", &lightPosition.z, -100.0, 100.0);
+			ImGui::SliderFloat3("Light Color", glm::value_ptr(lightColor), 0, 1);
+			ImGui::SliderFloat("Specular###IDFORSLIDER", &specular, 0.001, 256.0);
+		ImGui::End();
 
-		glm::mat4 model {1.0f}; 
-		model = glm::translate(model, glm::vec3(position.x/10, position.y/10, position.z/10));
-		model = glm::rotate(model, glm::radians(rotate.x), glm::vec3(1.0, 0.0, 0.0));
-		model = glm::rotate(model, glm::radians(rotate.y), glm::vec3(0.0, 1.0, 0.0));
-		model = glm::rotate(model, glm::radians(rotate.z), glm::vec3(0.0, 0.0, 1.0));
-		model = glm::scale(model, glm::vec3(scale_tmp));
+		ImGui::SetNextWindowSize({300, 220}, ImGuiCond_Once);
+		ImGui::SetNextWindowPos({20, 270}, ImGuiCond_Once);
+		ImGui::SetNextWindowCollapsed(false, ImGuiCond_Once);
+		ImGui::Begin("Cube");
+			ImGui::SliderFloat("Speed", &cubeRotateSpeed, -100.0, 100.0);
+			ImGui::SliderFloat("Translate: X", &cubePosition.x, -100.0, 100.0);
+			ImGui::SliderFloat("Translate: Y", &cubePosition.y, -100.0, 100.0);
+			ImGui::SliderFloat("Translate: Z", &cubePosition.z, -100.0, 100.0);
+			ImGui::SliderFloat("X Rotate", &cubeRotate.x, 0.0, 360.0);
+			ImGui::SliderFloat("Y Rotate", &cubeRotate.y, 0.0, 360.0);
+			ImGui::SliderFloat("Z Rotate", &cubeRotate.z, 0.0, 360.0);
+			ImGui::SliderFloat("Scale", &cubeScale, -5.0, 5.0);
+		ImGui::End();
+
 
         glm::mat4 view = camera.GetViewMatrix();
 
@@ -137,48 +144,17 @@ class App : public BaseApp {
 		else
 			projection = glm::ortho(-4.0f, 4.0f, -3.0f, 3.0f, 0.1f, 100.0f );
 
-		glm::mat4 result = projection * view * model;
-		GLuint transformLoc = glGetUniformLocation(basicShader.getId(), "transform");
-		glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(result)); 
 
-
-
-		static const std::array<glm::vec3, 3> positions = {
-			glm::vec3(0.0f, 3.0f, 0.0f),
-			glm::vec3(0.0f, 2.0f, 0.0f),
-			glm::vec3(0.0f, 1.0f, 0.0f),
-		};
-		static const std::array<glm::vec3, 3> colors = {
-			glm::vec3{101.0f, 210.0f, 69.0f}/256.0f,
-			glm::vec3{31.0f, 171.0f, 205.0f}/256.0f,
-			glm::vec3{254.0f, 200.0f, 47.0f}/256.0f
-		};
-		
-		static glm::vec3 scales {3.0f, 1.0f, 2.0f};
-		scales *= scale_tmp;
-		// for (size_t i {1}; i <= 3; i++) {
-		// 	glm::mat4 model {1.0f};
-		// 	model = glm::translate(model, positions[i-1]);
-		// 	model = glm::rotate(model, glm::radians(rotate.x), glm::vec3(1.0, 0.0, 0.0));
-		// 	model = glm::rotate(model, glm::radians(rotate.y), glm::vec3(0.0, 1.0, 0.0));
-		// 	model = glm::rotate(model, glm::radians(rotate.z), glm::vec3(0.0, 0.0, 1.0));
-		// 	model = glm::scale(model, glm::vec3(scales));
-		// 	glm::mat4 result = projection * view * model;
-
-		// 	GLuint transformLoc = glGetUniformLocation(basicShader.getId(), "transform");
-		// 	glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(result));
-
-		// 	GLuint transformLoc_color = glGetUniformLocation(basicShader.getId(), "color");
-		// 	glUniform3fv(transformLoc_color, 1, glm::value_ptr(colors[i-1]));
-
-		// 	glDrawArrays(GL_TRIANGLES, 0, 36);
-		// }
-		glBindVertexArray(0);
-
-		// glLineWidth(2.0f); 
-		// glBindVertexArray(VAO_cube);
-		// glDrawElements(GL_LINES, 4*6, GL_UNSIGNED_INT, 0);
-
+		// static const std::array<glm::vec3, 3> positions = {
+		// 	glm::vec3(0.0f, 3.0f, 0.0f),
+		// 	glm::vec3(0.0f, 2.0f, 0.0f),
+		// 	glm::vec3(0.0f, 1.0f, 0.0f),
+		// };
+		// static const std::array<glm::vec3, 3> colors = {
+		// 	glm::vec3{101.0f, 210.0f, 69.0f}/256.0f,
+		// 	glm::vec3{31.0f, 171.0f, 205.0f}/256.0f,
+		// 	glm::vec3{254.0f, 200.0f, 47.0f}/256.0f
+		// };
 
 		axes.draw(axesShader, [&projection, &view] (const Shader& shaderProg) {
 			glm::mat4 model = glm::scale(glm::mat4(1.0f), glm::vec3(100, 100, 100));
@@ -187,26 +163,29 @@ class App : public BaseApp {
 			glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(transformMatrix));
 		});
 
-		glm::vec3 rotate = glm::vec3((GLfloat)(int(glfwGetTime() * speed) % 360));
-		figure_cube.draw(lightedObjectShader, [&projection, &view, &rotate, cameraPos=camera.Position, position=position, scale_tmp=scale_tmp, lightPos=lightPos, specular=specular] (const Shader& shaderProg) {
+		cubeRotateValue += (std::sin(glfwGetTime())+1) * cubeRotateSpeed/50;
+		if (cubeRotateValue > 360.0f)
+			cubeRotateValue -= 360.0f;
+		cubeRotate = glm::vec3(cubeRotateValue);
+		figure_cube.draw(lightedObjectShader, [&projection, &view, rotate=cubeRotate, cameraPos=camera.Position, pos=cubePosition, scale=cubeScale, lightPos=lightPosition, lightColor=lightColor, specular=specular] (const Shader& shaderProg) {
 			glm::mat4 model {1.0f}; 
-			model = glm::translate(model, glm::vec3(position.x/10, position.y/10, position.z/10));
+			model = glm::translate(model, glm::vec3(pos.x/10, pos.y/10, pos.z/10));
 			model = glm::rotate(model, glm::radians(rotate.x), glm::vec3(1.0, 0.0, 0.0));
 			model = glm::rotate(model, glm::radians(rotate.y), glm::vec3(0.0, 1.0, 0.0));
 			model = glm::rotate(model, glm::radians(rotate.z), glm::vec3(0.0, 0.0, 1.0));
-			model = glm::scale(model, glm::vec3(scale_tmp));
+			model = glm::scale(model, glm::vec3(scale));
 
 			glm::mat4 transformMatrix = projection * view * model;
 			shaderProg.set("model", model);
 			shaderProg.set("transform", transformMatrix);
 			shaderProg.set("lightPos", lightPos);
-			shaderProg.set("lightColor", glm::vec3(1.0f));
+			shaderProg.set("lightColor", lightColor);
 			shaderProg.set("objectColor", glm::vec3(1.0f, 0.0f, 0.0f));
 			shaderProg.set("viewPos", cameraPos);
 			shaderProg.set("specular", specular);
 		});  
 
-		lightCube.draw(pointLightShader, [&projection, &view, lightPos=lightPos] (const Shader& shaderProg) {
+		lightCube.draw(pointLightShader, [&projection, &view, lightPos=lightPosition] (const Shader& shaderProg) {
 			glm::mat4 model {1.0f};
 			model = glm::translate(model, glm::vec3{lightPos.x/20, lightPos.y/20, lightPos.z/20});
 			model = glm::scale(model, glm::vec3(0.2, 0.2, 0.2));
@@ -215,6 +194,17 @@ class App : public BaseApp {
 			GLuint transformLoc = glGetUniformLocation(shaderProg.getId(), "transform");
 			glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(transformMatrix));
 		});
+
+		std::cout << "Camera: ";
+		std::cout << camera.Position.x << " "
+				  << camera.Position.y << " "
+				  << camera.Position.z << " "
+				  << std::endl;
+		std::cout << "Light: ";
+		std::cout << lightPosition.x << " "
+				  << lightPosition.y << " "
+				  << lightPosition.z << " "
+				  << std::endl;
 	}
 
 	void End() override {
