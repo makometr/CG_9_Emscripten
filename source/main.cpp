@@ -45,7 +45,7 @@ enum class ViewType {
 
 class App : public BaseApp {
 	// Shader basicShader{"resources/shaders/basic.vs", "resources/shaders/basic.fs"};
-	Shader axesShader{"resources/shaders/axes.vs", "resources/shaders/basic.fs"};
+	Shader axesShader{"resources/shaders/axes.vs", "resources/shaders/axes.fs"};
 	Shader pointLightShader{"resources/shaders/point_light.vs", "resources/shaders/point_light.fs"};
 	Shader lightedObjectShader{"resources/shaders/lighted.vs", "resources/shaders/lighted.fs"};
 
