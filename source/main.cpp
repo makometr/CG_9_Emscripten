@@ -93,7 +93,7 @@ class App : public BaseApp {
         // Set frame time
         currentFrame = glfwGetTime();
         deltaTime = currentFrame - lastFrame;
-        lastFrame = currentFrame;
+        lastFrame = currentFrame; 
 		if (cmcbManager.getCameraActiveStatus())
 			cmcbManager.applyPlayerMoveControllerChanges(deltaTime);
 
@@ -182,19 +182,19 @@ class App : public BaseApp {
 			shaderProg.set("transform", transformMatrix);
 			shaderProg.set("lightPos", lightPos);
 			shaderProg.set("lightColor", lightColor);
-			shaderProg.set("objectColor", glm::vec3(1.0f, 0.0f, 0.0f));
+			shaderProg.set("objectColor", glm::vec3(102.0f/256.0f, 1.0f, 1.0f));
 			shaderProg.set("viewPos", cameraPos);
 			shaderProg.set("specular", specular);
 		});  
 
-		lightCube.draw(pointLightShader, [&projection, &view, lightPos=lightPosition] (const Shader& shaderProg) {
+		lightCube.draw(pointLightShader, [&projection, &view, lightPos=lightPosition, lightColor=lightColor] (const Shader& shaderProg) {
 			glm::mat4 model {1.0f};
 			model = glm::translate(model, glm::vec3{lightPos.x/20, lightPos.y/20, lightPos.z/20});
 			model = glm::scale(model, glm::vec3(0.2, 0.2, 0.2));
 
 			glm::mat4 transformMatrix = projection * view * model;
-			GLuint transformLoc = glGetUniformLocation(shaderProg.getId(), "transform");
-			glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(transformMatrix));
+			shaderProg.set("transform", transformMatrix);
+			shaderProg.set("objectColor", lightColor);
 		});
 
 		std::cout << "Camera: ";
