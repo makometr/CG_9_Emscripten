@@ -30,6 +30,7 @@
 // Window dimensions
 // TODO move to state 
 constexpr GLuint WIDTH = 800, HEIGHT = 600;
+static bool isAxesEnabled = true;
 
 struct Vertex
 {
@@ -99,19 +100,19 @@ class App : public BaseApp {
 		glfwPollEvents();
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-		ImGui::SetNextWindowSize({300, 70}, ImGuiCond_Once);
+		ImGui::SetNextWindowSize({300, 80}, ImGuiCond_Once);
 		ImGui::SetNextWindowPos({20, 20}, ImGuiCond_Once);
 		ImGui::SetNextWindowCollapsed(false, ImGuiCond_Once);
 		ImGui::Begin("Camera");
 			static int ProjectionType = 0;
-			ImGui::RadioButton("Perspective", &ProjectionType, 0);
-			ImGui::SameLine();
+			ImGui::RadioButton("Perspective", &ProjectionType, 0); ImGui::SameLine();
 			ImGui::RadioButton("Orthographic", &ProjectionType, 1);
+			ImGui::Checkbox("Axes enabled", &isAxesEnabled);
 		ImGui::End();
 
 
 		ImGui::SetNextWindowSize({300, 150}, ImGuiCond_Once);
-		ImGui::SetNextWindowPos({20, 100}, ImGuiCond_Once);
+		ImGui::SetNextWindowPos({20, 110}, ImGuiCond_Once);
 		ImGui::SetNextWindowCollapsed(false, ImGuiCond_Once);
 		ImGui::Begin("Light");
 			ImGui::SliderFloat("Translate: X", &lightPosition.x, -100.0, 100.0);
@@ -122,7 +123,7 @@ class App : public BaseApp {
 		ImGui::End();
 
 		ImGui::SetNextWindowSize({300, 220}, ImGuiCond_Once);
-		ImGui::SetNextWindowPos({20, 270}, ImGuiCond_Once);
+		ImGui::SetNextWindowPos({20, 280}, ImGuiCond_Once);
 		ImGui::SetNextWindowCollapsed(false, ImGuiCond_Once);
 		ImGui::Begin("Cube");
 			ImGui::SliderFloat("Speed", &cubeRotateSpeed, -100.0, 100.0);
@@ -155,13 +156,14 @@ class App : public BaseApp {
 		// 	glm::vec3{31.0f, 171.0f, 205.0f}/256.0f,
 		// 	glm::vec3{254.0f, 200.0f, 47.0f}/256.0f
 		// };
-
-		axes.draw(axesShader, [&projection, &view] (const Shader& shaderProg) {
-			glm::mat4 model = glm::scale(glm::mat4(1.0f), glm::vec3(100, 100, 100));
-			glm::mat4 transformMatrix = projection * view * model;
-			GLuint transformLoc = glGetUniformLocation(shaderProg.getId(), "transform");
-			glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(transformMatrix));
-		});
+		if (isAxesEnabled) {
+			axes.draw(axesShader, [&projection, &view] (const Shader& shaderProg) {
+				glm::mat4 model = glm::scale(glm::mat4(1.0f), glm::vec3(100, 100, 100));
+				glm::mat4 transformMatrix = projection * view * model;
+				GLuint transformLoc = glGetUniformLocation(shaderProg.getId(), "transform");
+				glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(transformMatrix));
+			});
+		}
 
 		cubeRotateValue += (std::sin(glfwGetTime())+1) * cubeRotateSpeed/50;
 		if (cubeRotateValue > 360.0f)
