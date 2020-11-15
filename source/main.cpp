@@ -78,9 +78,9 @@ class App : public BaseApp {
 	GLfloat cubeScale {1.0f};
 
 	// Light state
-	glm::vec3 pointLightPosition_1 {40.0f, 40.0f, 0.0f};
+	glm::vec3 pointLightPosition_1 {4.0f, 4.0f, 0.0f};
 	glm::vec3 pointLightColor_1 {1.0f};
-	glm::vec3 pointLightPosition_2 {-40.0f, 40.0f, 0.0f};
+	glm::vec3 pointLightPosition_2 {-4.0f, 4.0f, 0.0f};
 	glm::vec3 pointLightColor_2 {1.0f};
 	// float specular {128.0f};
 
@@ -124,9 +124,9 @@ class App : public BaseApp {
 		ImGui::SetNextWindowPos({10, 100}, ImGuiCond_Once);
 		ImGui::SetNextWindowCollapsed(false, ImGuiCond_Once);
 		ImGui::Begin("Light-1");
-			ImGui::SliderFloat("Translate: X", &pointLightPosition_1.x, -100.0, 100.0);
-			ImGui::SliderFloat("Translate: Y", &pointLightPosition_1.y, -100.0, 100.0);
-			ImGui::SliderFloat("Translate: Z", &pointLightPosition_1.z, -100.0, 100.0);
+			ImGui::SliderFloat("Translate: X", &pointLightPosition_1.x, -10.0, 10.0);
+			ImGui::SliderFloat("Translate: Y", &pointLightPosition_1.y, -10.0, 10.0);
+			ImGui::SliderFloat("Translate: Z", &pointLightPosition_1.z, -10.0, 10.0);
 			ImGui::SliderFloat3("Light Color", glm::value_ptr(pointLightColor_1), 0, 1);
 			ImGui::Checkbox("Light enabled", &pointLightsTurned[0]);
 		ImGui::End();
@@ -135,9 +135,9 @@ class App : public BaseApp {
 		ImGui::SetNextWindowPos({10, 240}, ImGuiCond_Once);
 		ImGui::SetNextWindowCollapsed(false, ImGuiCond_Once);
 		ImGui::Begin("Light-2");
-			ImGui::SliderFloat("Translate: X", &pointLightPosition_2.x, -100.0, 100.0);
-			ImGui::SliderFloat("Translate: Y", &pointLightPosition_2.y, -100.0, 100.0);
-			ImGui::SliderFloat("Translate: Z", &pointLightPosition_2.z, -100.0, 100.0);
+			ImGui::SliderFloat("Translate: X", &pointLightPosition_2.x, -10.0, 10.0);
+			ImGui::SliderFloat("Translate: Y", &pointLightPosition_2.y, -10.0, 10.0);
+			ImGui::SliderFloat("Translate: Z", &pointLightPosition_2.z, -10.0, 10.0);
 			ImGui::SliderFloat3("Light Color", glm::value_ptr(pointLightColor_2), 0, 1);
 			ImGui::Checkbox("Light enabled", &pointLightsTurned[1]);
 		ImGui::End();
@@ -147,9 +147,9 @@ class App : public BaseApp {
 		ImGui::SetNextWindowCollapsed(false, ImGuiCond_Once);
 		ImGui::Begin("Cube");
 			ImGui::SliderFloat("Speed", &cubeRotateSpeed, -100.0, 100.0);
-			// ImGui::SliderFloat("Translate: X", &cubePosition.x, -100.0, 100.0);
-			// ImGui::SliderFloat("Translate: Y", &cubePosition.y, -100.0, 100.0);
-			// ImGui::SliderFloat("Translate: Z", &cubePosition.z, -100.0, 100.0);
+			// ImGui::SliderFloat("Translate: X", &cubePosition.x, -10.0, 10.0);
+			// ImGui::SliderFloat("Translate: Y", &cubePosition.y, -10.0, 10.0);
+			// ImGui::SliderFloat("Translate: Z", &cubePosition.z, -10.0, 10.0);
 			ImGui::SliderFloat("X Rotate", &cubeRotate.x, 0.0, 360.0);
 			ImGui::SliderFloat("Y Rotate", &cubeRotate.y, 0.0, 360.0);
 			ImGui::SliderFloat("Z Rotate", &cubeRotate.z, 0.0, 360.0);
@@ -201,7 +201,7 @@ class App : public BaseApp {
 		cubeRotate = glm::vec3(cubeRotateValue);
 		figure_cube.draw(lightedObjectShader, [&projection, &view, rotate=cubeRotate, cameraPos=camera.Position, pos=cubePosition, scale=cubeScale, lightPos_1=pointLightPosition_1, lightPos_2=pointLightPosition_2, plColor_1=pointLightColor_1, plColor_2=pointLightColor_2] (const Shader& shaderProg) {
 			glm::mat4 model {1.0f}; 
-			model = glm::translate(model, glm::vec3(pos.x/10, pos.y/10, pos.z/10));
+			model = glm::translate(model, glm::vec3(pos.x, pos.y, pos.z));
 			model = glm::rotate(model, glm::radians(rotate.x), glm::vec3(1.0, 0.0, 0.0));
 			model = glm::rotate(model, glm::radians(rotate.y), glm::vec3(0.0, 1.0, 0.0));
 			model = glm::rotate(model, glm::radians(rotate.z), glm::vec3(0.0, 0.0, 1.0));
@@ -236,13 +236,13 @@ class App : public BaseApp {
 			shaderProg.set("pointLights[1].diffuse", plColor_2 * glm::vec3{1.0f, 1.0f, 1.0f});
 			shaderProg.set("pointLights[1].specular", plColor_2 * glm::vec3{1.0f, 1.0f, 1.0f});
 			shaderProg.set("pointLights[1].constant", 1.0f);
-			shaderProg.set("pointLights[1].linear", 0.09f);
-			shaderProg.set("pointLights[1].quadratic", 0.032f);
+			shaderProg.set("pointLights[1].linear", 0.0014f);
+			shaderProg.set("pointLights[1].quadratic", 0.000007f);
 		});  
 
 		lightCube.draw(pointLightShader, [&projection, &view, pos=pointLightPosition_1, lightColor=pointLightColor_1] (const Shader& shaderProg) {
 			glm::mat4 model {1.0f};
-			model = glm::translate(model, glm::vec3{pos.x/20, pos.y/20, pos.z/20});
+			model = glm::translate(model, glm::vec3{pos.x, pos.y, pos.z});
 			model = glm::scale(model, glm::vec3(0.2, 0.2, 0.2));
 
 			glm::mat4 transformMatrix = projection * view * model;
@@ -252,7 +252,7 @@ class App : public BaseApp {
 
 		lightCube.draw(pointLightShader, [&projection, &view, pos=pointLightPosition_2, lightColor=pointLightColor_2] (const Shader& shaderProg) {
 			glm::mat4 model {1.0f};
-			model = glm::translate(model, glm::vec3{pos.x/20, pos.y/20, pos.z/20});
+			model = glm::translate(model, glm::vec3{pos.x, pos.y, pos.z});
 			model = glm::scale(model, glm::vec3(0.2, 0.2, 0.2));
 
 			glm::mat4 transformMatrix = projection * view * model;
