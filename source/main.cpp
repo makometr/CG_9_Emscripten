@@ -206,16 +206,36 @@ class App : public BaseApp {
 			shaderProg.set("material.specular", curMat.get().getSpecular());
 			shaderProg.set("material.shininess", curMat.get().getShininess());
 
-			shaderProg.set("light.position", lightPos);
-			shaderProg.set("light.ambient", lightColor * glm::vec3{1.0f, 1.0f, 1.0f});
-			shaderProg.set("light.diffuse", lightColor * glm::vec3{1.0f, 1.0f, 1.0f});
-			shaderProg.set("light.specular", lightColor * glm::vec3{1.0f, 1.0f, 1.0f});
-			shaderProg.set("light.constant", 1.0f);
-			shaderProg.set("light.linear", 0.007f);
-			shaderProg.set("light.quadratic", 0.0002f);
+
+
+			shaderProg.set("pointLights[0].position", lightPos);
+			shaderProg.set("pointLights[0].ambient", lightColor * glm::vec3{1.0f, 1.0f, 1.0f});
+			shaderProg.set("pointLights[0].diffuse", lightColor * glm::vec3{1.0f, 1.0f, 1.0f});
+			shaderProg.set("pointLights[0].specular", lightColor * glm::vec3{1.0f, 1.0f, 1.0f});
+			shaderProg.set("pointLights[0].constant", 1.0f);
+			shaderProg.set("pointLights[0].linear", 0.007f);  
+			shaderProg.set("pointLights[0].quadratic", 0.0002f);
+
+			shaderProg.set("pointLights[1].position", lightPos + 3.0f);
+			shaderProg.set("pointLights[1].ambient", lightColor * glm::vec3{1.0f, 1.0f, 1.0f});
+			shaderProg.set("pointLights[1].diffuse", lightColor * glm::vec3{1.0f, 1.0f, 1.0f});
+			shaderProg.set("pointLights[1].specular", lightColor * glm::vec3{1.0f, 1.0f, 1.0f});
+			shaderProg.set("pointLights[1].constant", 1.0f);
+			shaderProg.set("pointLights[1].linear", 0.007f);
+			shaderProg.set("pointLights[1].quadratic", 0.0002f);
 		});  
 
 		lightCube.draw(pointLightShader, [&projection, &view, lightPos=lightPosition, lightColor=lightColor] (const Shader& shaderProg) {
+			glm::mat4 model {1.0f};
+			model = glm::translate(model, glm::vec3{lightPos.x/20, lightPos.y/20, lightPos.z/20});
+			model = glm::scale(model, glm::vec3(0.2, 0.2, 0.2));
+
+			glm::mat4 transformMatrix = projection * view * model;
+			shaderProg.set("transform", transformMatrix);
+			shaderProg.set("objectColor", lightColor);
+		});
+
+		lightCube.draw(pointLightShader, [&projection, &view, lightPos=lightPosition+3.0f, lightColor=lightColor] (const Shader& shaderProg) {
 			glm::mat4 model {1.0f};
 			model = glm::translate(model, glm::vec3{lightPos.x/20, lightPos.y/20, lightPos.z/20});
 			model = glm::scale(model, glm::vec3(0.2, 0.2, 0.2));
