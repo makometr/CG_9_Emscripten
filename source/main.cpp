@@ -228,16 +228,16 @@ class App : public BaseApp {
 			shaderProg.set("pointLights[0].diffuse", plColor_1 * glm::vec3{1.0f, 1.0f, 1.0f});
 			shaderProg.set("pointLights[0].specular", plColor_1 * glm::vec3{1.0f, 1.0f, 1.0f});
 			shaderProg.set("pointLights[0].constant", 1.0f);
-			shaderProg.set("pointLights[0].linear", 0.007f);  
-			shaderProg.set("pointLights[0].quadratic", 0.0002f);
+			shaderProg.set("pointLights[0].linear", 0.027f);  
+			shaderProg.set("pointLights[0].quadratic", 0.0028f);
 
 			shaderProg.set("pointLights[1].position", lightPos_2);
 			shaderProg.set("pointLights[1].ambient", plColor_2 * glm::vec3{1.0f, 1.0f, 1.0f});
 			shaderProg.set("pointLights[1].diffuse", plColor_2 * glm::vec3{1.0f, 1.0f, 1.0f});
 			shaderProg.set("pointLights[1].specular", plColor_2 * glm::vec3{1.0f, 1.0f, 1.0f});
 			shaderProg.set("pointLights[1].constant", 1.0f);
-			shaderProg.set("pointLights[1].linear", 0.0014f);
-			shaderProg.set("pointLights[1].quadratic", 0.000007f);
+			shaderProg.set("pointLights[1].linear", 0.027f);
+			shaderProg.set("pointLights[1].quadratic", 0.0028f);
 		});  
 
 		lightCube.draw(pointLightShader, [&projection, &view, pos=pointLightPosition_1, lightColor=pointLightColor_1] (const Shader& shaderProg) {

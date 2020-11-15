@@ -22,7 +22,7 @@ struct Material {
 out vec4 FragColor;
   
 in vec3 Normal;  
-in vec3 FragPos;  
+in vec3 FragPos;
   
 uniform vec3 viewPos;
 uniform Material material;
@@ -39,7 +39,7 @@ void main()
     vec3 result = vec3(0.0f, 0.0f, 0.0f);
     for(int i = 0; i < 2; i++) {
         if (pointLightsTurned[i])
-            result += CalcPointLight(pointLights[i], norm, FragPos, viewDir);
+        result += CalcPointLight(pointLights[i], norm, FragPos, viewDir);
     }
 
     FragColor = vec4(result, 1.0);
