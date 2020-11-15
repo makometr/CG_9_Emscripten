@@ -7,7 +7,7 @@
 #include <GLFW/glfw3.h>
 
 enum class MaterialType {
-    GOLD, cyanPlastic
+    GOLD, cyanPlastic, Emerlad
 };
 
 class Material {
@@ -42,17 +42,23 @@ public:
 private:
     inline static const std::map<MaterialType, Material>
     materials {
-                {MaterialType::GOLD, {
+                { MaterialType::GOLD, {
                     {0.24725f, 0.1995f, 0.0745f},
                     {0.75164f, 0.60648f, 0.22648f},
                     {0.628281f, 0.555802f, 0.366065f},
                     0.4f}
                 },
-                {MaterialType::cyanPlastic, {
+                { MaterialType::cyanPlastic, {
                     {0.0f, 0.1f, 0.06f},
                     {0.0f, 0.50980392f, 0.50980392f},
                     {0.50196078f, 0.50196078f, 0.50196078f},
                     32.0f}
                 },
-            };
+                { MaterialType::Emerlad, {
+                    {0.0215, 0.1745, 0.0215},
+                    {0.07568, 0.61424, 0.07568},
+                    {0.633, 0.727811, 0.633},
+                    0.6f}
+                },
+    };
 };

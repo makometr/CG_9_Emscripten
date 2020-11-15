@@ -142,13 +142,16 @@ class App : public BaseApp {
 			ImGui::SliderFloat("Scale", &cubeScale, -5.0, 5.0);
 			static int materialType = 0;
 			ImGui::RadioButton("Gold", &materialType, 0); ImGui::SameLine();
-			ImGui::RadioButton("Cyan Plastic", &materialType, 1);
+			ImGui::RadioButton("Cyan Plastic", &materialType, 1); ImGui::SameLine();
+			ImGui::RadioButton("Emerlad", &materialType, 2);
 		ImGui::End();
 
 		if (materialType == 0)
 			curMat = materialManager.getMaterial(MaterialType::GOLD);
 		if (materialType == 1)
 			curMat = materialManager.getMaterial(MaterialType::cyanPlastic);
+		if (materialType == 2)
+			curMat = materialManager.getMaterial(MaterialType::Emerlad);
 
         glm::mat4 view = camera.GetViewMatrix();
 
