@@ -193,9 +193,11 @@ class App : public BaseApp {
 			model = glm::rotate(model, glm::radians(rotate.z), glm::vec3(0.0, 0.0, 1.0));
 			model = glm::scale(model, glm::vec3(scale));
 
-			glm::mat4 transformMatrix = projection * view * model;
+			// glm::mat4 transformMatrix = projection * view * model;
 			shaderProg.set("model", model);
-			shaderProg.set("transform", transformMatrix);
+			shaderProg.set("view", view);
+			shaderProg.set("projection", projection);
+			// shaderProg.set("transform", transformMatrix);
 			// shaderProg.set("objectColor", glm::vec3(102.0f/256.0f, 1.0f, 1.0f));
 			shaderProg.set("viewPos", cameraPos);
 
@@ -208,6 +210,9 @@ class App : public BaseApp {
 			shaderProg.set("light.ambient", lightColor * glm::vec3{1.0f, 1.0f, 1.0f});
 			shaderProg.set("light.diffuse", lightColor * glm::vec3{1.0f, 1.0f, 1.0f});
 			shaderProg.set("light.specular", lightColor * glm::vec3{1.0f, 1.0f, 1.0f});
+			shaderProg.set("light.constant", 1.0f);
+			shaderProg.set("light.linear", 0.007f);
+			shaderProg.set("light.quadratic", 0.0002f);
 		});  
 
 		lightCube.draw(pointLightShader, [&projection, &view, lightPos=lightPosition, lightColor=lightColor] (const Shader& shaderProg) {
