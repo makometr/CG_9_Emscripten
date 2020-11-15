@@ -132,6 +132,7 @@ std::optional<std::string> Shader::loadFromFile(const std::string &path)
 static void checkUniformFound(GLint value, const std::string &name) {
 	if (value == -1) {
 		std::cout << "Error: uniform " << name << " was not found.\n";
+		exit(1);
 	}
 }
 

@@ -20,6 +20,7 @@
 #include <array>
 #include <algorithm>
 #include <iostream>
+#include <map>
 
 #include "Camera.hpp"
 #include "CameraMoveCallbackManager.hpp"
@@ -31,6 +32,31 @@
 // TODO move to state 
 constexpr GLuint WIDTH = 800, HEIGHT = 600;
 static bool isAxesEnabled = true;
+
+class Material {
+public:
+	Material (glm::vec3 ambient, glm::vec3 diffuse, glm::vec3 specular, GLfloat shininess) :
+		ambient(ambient), diffuse(diffuse), specular(specular), shininess(shininess)  {}
+
+	const glm::vec3& getAmbient() const { return ambient; };
+	const glm::vec3& getDiffuse() const { return diffuse; };
+	const glm::vec3& getSpecular() const { return specular; };
+	GLfloat getShininess() const { return shininess; };
+
+private:
+	glm::vec3 ambient;
+	glm::vec3 diffuse;
+	glm::vec3 specular;
+	GLfloat shininess;
+};
+
+// Material contaniner TODO
+const std::map<std::string, Material> materials {{"gold", {
+												{1.0f, 0.5f, 0.31f},
+												{1.0f, 0.5f, 0.31f},
+												{0.5f, 0.5f, 0.5f},
+												32.0f}},
+											};
 
 struct Vertex
 {
@@ -169,7 +195,7 @@ class App : public BaseApp {
 		if (cubeRotateValue > 360.0f)
 			cubeRotateValue -= 360.0f;
 		cubeRotate = glm::vec3(cubeRotateValue);
-		figure_cube.draw(lightedObjectShader, [&projection, &view, rotate=cubeRotate, cameraPos=camera.Position, pos=cubePosition, scale=cubeScale, lightPos=lightPosition, lightColor=lightColor, specular=specular] (const Shader& shaderProg) {
+		figure_cube.draw(lightedObjectShader, [&projection, &view, rotate=cubeRotate, cameraPos=camera.Position, pos=cubePosition, scale=cubeScale, lightPos=lightPosition, lightColor=lightColor] (const Shader& shaderProg) {
 			glm::mat4 model {1.0f}; 
 			model = glm::translate(model, glm::vec3(pos.x/10, pos.y/10, pos.z/10));
 			model = glm::rotate(model, glm::radians(rotate.x), glm::vec3(1.0, 0.0, 0.0));
@@ -180,11 +206,18 @@ class App : public BaseApp {
 			glm::mat4 transformMatrix = projection * view * model;
 			shaderProg.set("model", model);
 			shaderProg.set("transform", transformMatrix);
-			shaderProg.set("lightPos", lightPos);
-			shaderProg.set("lightColor", lightColor);
-			shaderProg.set("objectColor", glm::vec3(102.0f/256.0f, 1.0f, 1.0f));
+			// shaderProg.set("objectColor", glm::vec3(102.0f/256.0f, 1.0f, 1.0f));
 			shaderProg.set("viewPos", cameraPos);
-			shaderProg.set("specular", specular);
+
+			shaderProg.set("material.ambient", materials.at("gold").getAmbient());
+			shaderProg.set("material.diffuse", materials.at("gold").getDiffuse());
+			shaderProg.set("material.specular", materials.at("gold").getSpecular());
+			shaderProg.set("material.shininess", materials.at("gold").getShininess());
+
+			shaderProg.set("light.position", lightPos);
+			shaderProg.set("light.ambient", lightColor * glm::vec3{0.2f, 0.2f, 0.2f});
+			shaderProg.set("light.diffuse", lightColor * glm::vec3{0.5f, 0.5f, 0.5f});
+			shaderProg.set("light.specular", lightColor * glm::vec3{1.0f, 1.0f, 1.0f});
 		});  
 
 		lightCube.draw(pointLightShader, [&projection, &view, lightPos=lightPosition, lightColor=lightColor] (const Shader& shaderProg) {
@@ -197,16 +230,16 @@ class App : public BaseApp {
 			shaderProg.set("objectColor", lightColor);
 		});
 
-		std::cout << "Camera: ";
-		std::cout << camera.Position.x << " "
-				  << camera.Position.y << " "
-				  << camera.Position.z << " "
-				  << std::endl;
-		std::cout << "Light: ";
-		std::cout << lightPosition.x << " "
-				  << lightPosition.y << " "
-				  << lightPosition.z << " "
-				  << std::endl;
+		// std::cout << "Camera: ";
+		// std::cout << camera.Position.x << " "
+		// 		  << camera.Position.y << " "
+		// 		  << camera.Position.z << " "
+		// 		  << std::endl;
+		// std::cout << "Light: ";
+		// std::cout << lightPosition.x << " "
+		// 		  << lightPosition.y << " "
+		// 		  << lightPosition.z << " "
+		// 		  << std::endl;
 	}
 
 	void End() override {
