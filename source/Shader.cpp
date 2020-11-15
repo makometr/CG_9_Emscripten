@@ -141,13 +141,20 @@ void Shader::set(const std::string& name, const glm::vec3& value) const {
 	checkUniformFound(uniform, name);
 	glUniform3fv(uniform, 1, glm::value_ptr(value));
 }
+
+
 void Shader::set(const std::string& name, const glm::mat4& value) const {
 	GLint uniform = glGetUniformLocation(id, name.c_str());
 	checkUniformFound(uniform, name);
 	glUniformMatrix4fv(uniform, 1, GL_FALSE, glm::value_ptr(value));
 }
+
 void Shader::set(const std::string& name, float value) const {
 	GLint uniform = glGetUniformLocation(id, name.c_str());
 	checkUniformFound(uniform, name);
 	glUniform1f(uniform, value);
+}
+
+void Shader::setMaterial(const std::string& name, const Material& material) const {
+	
 }

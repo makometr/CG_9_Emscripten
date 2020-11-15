@@ -6,6 +6,7 @@
 
 #include "imgui.h"
 
+
 #include "glad/glad.h"
 #define GLFW_INCLUDE_NONE
 #include <GLFW/glfw3.h>
@@ -22,6 +23,7 @@
 #include <iostream>
 #include <map>
 
+#include "Materials.hpp"
 #include "Camera.hpp"
 #include "CameraMoveCallbackManager.hpp"
 #include "ogl_objects/AxesOpenGL.hpp"
@@ -33,30 +35,8 @@
 constexpr GLuint WIDTH = 800, HEIGHT = 600;
 static bool isAxesEnabled = true;
 
-class Material {
-public:
-	Material (glm::vec3 ambient, glm::vec3 diffuse, glm::vec3 specular, GLfloat shininess) :
-		ambient(ambient), diffuse(diffuse), specular(specular), shininess(shininess)  {}
-
-	const glm::vec3& getAmbient() const { return ambient; };
-	const glm::vec3& getDiffuse() const { return diffuse; };
-	const glm::vec3& getSpecular() const { return specular; };
-	GLfloat getShininess() const { return shininess; };
-
-private:
-	glm::vec3 ambient;
-	glm::vec3 diffuse;
-	glm::vec3 specular;
-	GLfloat shininess;
-};
-
-// Material contaniner TODO
-const std::map<std::string, Material> materials {{"gold", {
-												{1.0f, 0.5f, 0.31f},
-												{1.0f, 0.5f, 0.31f},
-												{0.5f, 0.5f, 0.5f},
-												32.0f}},
-											};
+Materials materialManager {};
+std::reference_wrapper<const Material> curMat = materialManager.getMaterial(MaterialType::GOLD);
 
 struct Vertex
 {
@@ -137,7 +117,7 @@ class App : public BaseApp {
 		ImGui::End();
 
 
-		ImGui::SetNextWindowSize({300, 150}, ImGuiCond_Once);
+		ImGui::SetNextWindowSize({300, 130}, ImGuiCond_Once);
 		ImGui::SetNextWindowPos({20, 110}, ImGuiCond_Once);
 		ImGui::SetNextWindowCollapsed(false, ImGuiCond_Once);
 		ImGui::Begin("Light");
@@ -145,11 +125,11 @@ class App : public BaseApp {
 			ImGui::SliderFloat("Translate: Y", &lightPosition.y, -100.0, 100.0);
 			ImGui::SliderFloat("Translate: Z", &lightPosition.z, -100.0, 100.0);
 			ImGui::SliderFloat3("Light Color", glm::value_ptr(lightColor), 0, 1);
-			ImGui::SliderFloat("Specular###IDFORSLIDER", &specular, 0.001, 256.0);
+			// ImGui::SliderFloat("Specular###IDFORSLIDER", &specular, 0.001, 256.0);
 		ImGui::End();
 
-		ImGui::SetNextWindowSize({300, 220}, ImGuiCond_Once);
-		ImGui::SetNextWindowPos({20, 280}, ImGuiCond_Once);
+		ImGui::SetNextWindowSize({300, 240}, ImGuiCond_Once);
+		ImGui::SetNextWindowPos({20, 260}, ImGuiCond_Once);
 		ImGui::SetNextWindowCollapsed(false, ImGuiCond_Once);
 		ImGui::Begin("Cube");
 			ImGui::SliderFloat("Speed", &cubeRotateSpeed, -100.0, 100.0);
@@ -160,8 +140,15 @@ class App : public BaseApp {
 			ImGui::SliderFloat("Y Rotate", &cubeRotate.y, 0.0, 360.0);
 			ImGui::SliderFloat("Z Rotate", &cubeRotate.z, 0.0, 360.0);
 			ImGui::SliderFloat("Scale", &cubeScale, -5.0, 5.0);
+			static int materialType = 0;
+			ImGui::RadioButton("Gold", &materialType, 0); ImGui::SameLine();
+			ImGui::RadioButton("Cyan Plastic", &materialType, 1);
 		ImGui::End();
 
+		if (materialType == 0)
+			curMat = materialManager.getMaterial(MaterialType::GOLD);
+		if (materialType == 1)
+			curMat = materialManager.getMaterial(MaterialType::cyanPlastic);
 
         glm::mat4 view = camera.GetViewMatrix();
 
@@ -209,14 +196,14 @@ class App : public BaseApp {
 			// shaderProg.set("objectColor", glm::vec3(102.0f/256.0f, 1.0f, 1.0f));
 			shaderProg.set("viewPos", cameraPos);
 
-			shaderProg.set("material.ambient", materials.at("gold").getAmbient());
-			shaderProg.set("material.diffuse", materials.at("gold").getDiffuse());
-			shaderProg.set("material.specular", materials.at("gold").getSpecular());
-			shaderProg.set("material.shininess", materials.at("gold").getShininess());
+			shaderProg.set("material.ambient", curMat.get().getAmbient());
+			shaderProg.set("material.diffuse", curMat.get().getDiffuse());
+			shaderProg.set("material.specular", curMat.get().getSpecular());
+			shaderProg.set("material.shininess", curMat.get().getShininess());
 
 			shaderProg.set("light.position", lightPos);
-			shaderProg.set("light.ambient", lightColor * glm::vec3{0.2f, 0.2f, 0.2f});
-			shaderProg.set("light.diffuse", lightColor * glm::vec3{0.5f, 0.5f, 0.5f});
+			shaderProg.set("light.ambient", lightColor * glm::vec3{1.0f, 1.0f, 1.0f});
+			shaderProg.set("light.diffuse", lightColor * glm::vec3{1.0f, 1.0f, 1.0f});
 			shaderProg.set("light.specular", lightColor * glm::vec3{1.0f, 1.0f, 1.0f});
 		});  
 
