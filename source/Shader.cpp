@@ -155,6 +155,12 @@ void Shader::set(const std::string& name, float value) const {
 	glUniform1f(uniform, value);
 }
 
+void Shader::set(const std::string& name, bool value) const {
+	GLint uniform = glGetUniformLocation(id, name.c_str());
+	checkUniformFound(uniform, name);
+	glUniform1i(uniform, value);
+}
+
 void Shader::setMaterial(const std::string& name, const Material& material) const {
 	
 }
