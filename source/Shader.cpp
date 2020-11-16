@@ -2,6 +2,7 @@
 #include <iostream>
 #include <fstream>
 #include <optional>
+#include <glm/gtc/type_ptr.hpp>
 
 constexpr auto coreVersionLine = "#version 330 core\n";
 constexpr auto esVersionLine   = "#version 300 es\n";
@@ -85,7 +86,7 @@ std::optional<std::string> Shader::loadFromFile(const std::string &path)
 	file.open(path);
 	if (file.is_open()) {
 		std::string original{std::istreambuf_iterator<char>(file), std::istreambuf_iterator<char>()};
-		std::cout << original << std::endl;
+		// std::cout << original << std::endl;
 		const auto versionBegin    = original.find("#version");
 		const auto versionEnd      = original.find('\n', versionBegin);
 		const auto versionLen      = versionEnd-versionBegin+1;
@@ -125,4 +126,44 @@ std::optional<std::string> Shader::loadFromFile(const std::string &path)
 		return std::nullopt;
 	}
 	return std::nullopt;
+}
+
+
+static void checkUniformFound(GLint value, const std::string &name) {
+	if (value == -1) {
+		std::cout << "Error: uniform " << name << " was not found.\n";
+		exit(1);
+	}
+}
+
+void Shader::set(const std::string& name, const glm::vec3& value) const {
+	GLint uniform = glGetUniformLocation(id, name.c_str());
+	checkUniformFound(uniform, name);
+	glUniform3fv(uniform, 1, glm::value_ptr(value));
+}
+
+
+void Shader::set(const std::string& name, const glm::mat4& value) const {
+	GLint uniform = glGetUniformLocation(id, name.c_str());
+	checkUniformFound(uniform, name);
+	glUniformMatrix4fv(uniform, 1, GL_FALSE, glm::value_ptr(value));
+}
+
+void Shader::set(const std::string& name, float value) const {
+	GLint uniform = glGetUniformLocation(id, name.c_str());
+	checkUniformFound(uniform, name);
+	glUniform1f(uniform, value);
+}
+
+void Shader::set(const std::string& name, bool value) const {
+	GLint uniform = glGetUniformLocation(id, name.c_str());
+	checkUniformFound(uniform, name);
+	glUniform1i(uniform, value);
+}
+
+void Shader::set(const std::string& name, const Material& material) const {
+	set(name + ".ambient", material.getAmbient());
+	set(name + ".diffuse", material.getDiffuse());
+	set(name + ".specular", material.getSpecular());
+	set(name + ".shininess", material.getShininess());
 }
