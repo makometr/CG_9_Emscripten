@@ -161,6 +161,9 @@ void Shader::set(const std::string& name, bool value) const {
 	glUniform1i(uniform, value);
 }
 
-void Shader::setMaterial(const std::string& name, const Material& material) const {
-	
+void Shader::set(const std::string& name, const Material& material) const {
+	set(name + ".ambient", material.getAmbient());
+	set(name + ".diffuse", material.getDiffuse());
+	set(name + ".specular", material.getSpecular());
+	set(name + ".shininess", material.getShininess());
 }

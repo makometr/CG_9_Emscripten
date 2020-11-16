@@ -216,10 +216,7 @@ class App : public BaseApp {
 			shaderProg.set("pointLightsTurned[0]", pointLightsTurned[0]);
 			shaderProg.set("pointLightsTurned[1]", pointLightsTurned[1]);
 
-			shaderProg.set("material.ambient", curMat.get().getAmbient());
-			shaderProg.set("material.diffuse", curMat.get().getDiffuse());
-			shaderProg.set("material.specular", curMat.get().getSpecular());
-			shaderProg.set("material.shininess", curMat.get().getShininess());
+			shaderProg.set("material", curMat.get());
 
 
 
