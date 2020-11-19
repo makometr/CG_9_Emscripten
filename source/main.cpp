@@ -19,6 +19,7 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 #include <ctime>
+#include <memory>
 
 #include <array>
 #include <algorithm>
@@ -86,6 +87,12 @@ class App : public BaseApp {
 	glm::vec3 pointLightColor_2 {1.0f};
 	// float specular {128.0f};
 
+	// texture
+	int t_width;
+	int t_height;
+	int t_nrChs;
+	unsigned texture;
+
 	void Start() override {
 		glEnable(GL_DEPTH_TEST);
 
@@ -95,12 +102,25 @@ class App : public BaseApp {
 		ImGui::StyleColorsLight();
 		glClearColor(1.0, 0.87, 0.83, 1.0);
 
+
 		axes.initBuffers();
 		lightCube.initBuffers();
 		figure_cube.initBuffers();
 
-		// int width, height;
-    	// unsigned char* image = SOIL_load_image("resources/container.jpg", &width, &height, 0, SOIL_LOAD_RGB);
+		int width, height, nrChannels;
+		auto image_deleter = [](unsigned char* data){
+			stbi_image_free(data);
+		};
+		std::unique_ptr<unsigned char, decltype(image_deleter)> data {(unsigned char*)stbi_load("resources/container.jpg", &width, &height, &nrChannels, 0), image_deleter};
+		if (!data)
+			std::cout << "ERROR!\n";
+		t_width = width;
+		t_height = height;
+		t_nrChs = nrChannels;
+		glGenTextures(1, &texture);
+		glBindTexture(GL_TEXTURE_2D, texture);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data.get());
+		glGenerateMipmap(GL_TEXTURE_2D);
 	}
 
 	void Update(float dTime) override {
