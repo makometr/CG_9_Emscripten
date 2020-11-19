@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 3.8)
 # ---- Project ----
 
 project(EMSC 
-  VERSION 0.1
+  VERSION 0.4
   LANGUAGES C CXX
 )
 
@@ -77,6 +77,7 @@ if (${CMAKE_SYSTEM_NAME} STREQUAL "Emscripten")
   # for various interesting flags for Emscripten
   set(CMAKE_EXECUTABLE_SUFFIX ".html")
   # set_target_properties(${PROJECT_NAME} PROPERTIES COMPILE_FLAGS "-m32")
+  set_target_properties(${PROJECT_NAME} PROPERTIES COMPILE_FLAGS "-s USE_PTHREADS=1 -s PTHREAD_POOL_SIZE=2")
 
   # Flags from imgui's repository example for Emscripten
   set_target_properties(${PROJECT_NAME} PROPERTIES COMPILE_FLAGS " -s WASM=1 -s ALLOW_MEMORY_GROWTH=1 -s DISABLE_EXCEPTION_CATCHING=1 -s NO_EXIT_RUNTIME=0 -s ASSERTIONS=1 -s NO_FILESYSTEM=1")

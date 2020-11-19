@@ -18,6 +18,7 @@
 #include <glm/gtc/type_ptr.hpp>
 #include <ctime>
 #include <memory>
+#include <future>
 
 #include <array>
 #include <algorithm>
@@ -92,6 +93,8 @@ class App : public BaseApp {
 	unsigned specularTexture;
 
 	void Start() override {
+		auto texture_load_result_1 = std::async(std::launch::deferred, TextureLoader::loadTexture, "resources/textures/container2.png");
+		auto texture_load_result_2 = std::async(std::launch::deferred, TextureLoader::loadTexture, "resources/textures/container2_specular.png");
 		glEnable(GL_DEPTH_TEST);
 
 		glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
@@ -105,8 +108,8 @@ class App : public BaseApp {
 		lightCube.initBuffers();
 		figure_cube.initBuffers();
 
-		auto [id_1, status_1] = TextureLoader::loadTexture("resources/textures/container2.png");
-		auto [id_2, status_2] = TextureLoader::loadTexture("resources/textures/container2_specular.png");
+		auto [id_1, status_1] = texture_load_result_1.get();
+		auto [id_2, status_2] = texture_load_result_2.get();
 		if (!status_1 || !status_2) {
 			std::cout << "Texture failed to load!" << std::endl;
 			exit(0); // TODO handle
