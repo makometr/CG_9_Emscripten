@@ -10,8 +10,6 @@
 #include "glad/glad.h"
 #define GLFW_INCLUDE_NONE
 #include <GLFW/glfw3.h>
-#define STB_IMAGE_IMPLEMENTATION
-#include "stb_image.h"
 
 #include <entt/entt.hpp>
 #include <glm/glm.hpp>
@@ -29,6 +27,7 @@
 #include "Materials.hpp"
 #include "Camera.hpp"
 #include "CameraMoveCallbackManager.hpp"
+#include "ogl_objects/TextureLoader.hpp"
 #include "ogl_objects/AxesOpenGL.hpp"
 #include "ogl_objects/StandardCube.hpp"
 #include "ogl_objects/TextureCube.hpp"
@@ -108,20 +107,11 @@ class App : public BaseApp {
 		lightCube.initBuffers();
 		figure_cube.initBuffers();
 
-		int width, height, nrChannels;
-		auto image_deleter = [](unsigned char* data){
-			stbi_image_free(data);
-		};
-		std::unique_ptr<unsigned char, decltype(image_deleter)> data {(unsigned char*)stbi_load("resources/container.jpg", &width, &height, &nrChannels, 0), image_deleter};
-		if (!data)
-			std::cout << "ERROR!\n";
-		t_width = width;
-		t_height = height;
-		t_nrChs = nrChannels;
-		glGenTextures(1, &texture);
-		glBindTexture(GL_TEXTURE_2D, texture);
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data.get());
-		glGenerateMipmap(GL_TEXTURE_2D);
+		auto [id, status] = TextureLoader::loadTexture("resources/container2.png");
+		if (!status) {
+			std::cout << "Texture failed to load at path: " << path << std::endl;
+			exit(0); // TODO handle
+		}
 	}
 
 	void Update(float dTime) override {
