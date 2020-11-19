@@ -13,16 +13,16 @@ struct PointLight {
 };
 
 struct Material {
-    vec3 ambient; // Цвет отражения под фоновым освещением
-    vec3 diffuse; // Цвет объекта под рассеяным освещением
-    vec3 specular; // Цвет блика 
-    float shininess; // Радиус блика
+    sampler2D diffuse;
+    vec3 specular;
+    float shininess;
 }; 
 
 out vec4 FragColor;
   
-in vec3 Normal;  
 in vec3 FragPos;
+in vec3 Normal;
+in vec2 TexCoords;
   
 uniform vec3 viewPos;
 uniform Material material;
@@ -59,8 +59,8 @@ vec3 CalcPointLight(PointLight light, vec3 normal, vec3 fragPos, vec3 viewDir)
     float attenuation = 1.0 / (light.constant + light.linear * distance + 
   			     light.quadratic * (distance * distance));    
     // комбинируем результаты
-    vec3 ambient = light.ambient * material.ambient;
-    vec3 diffuse = light.diffuse * (diff * material.diffuse);
+    vec3 ambient = light.ambient * vec3(texture(material.diffuse, TexCoords));
+    vec3 diffuse = light.diffuse * diff * vec3(texture(material.diffuse, TexCoords));
     vec3 specular = light.specular * (spec * material.specular);
     ambient  *= attenuation;
     diffuse  *= attenuation;

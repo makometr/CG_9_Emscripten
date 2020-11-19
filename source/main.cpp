@@ -59,11 +59,11 @@ class App : public BaseApp {
 	// Shader basicShader{"resources/shaders/basic.vs", "resources/shaders/basic.fs"};
 	Shader axesShader{"resources/shaders/axes.vs", "resources/shaders/axes.fs"};
 	Shader pointLightShader{"resources/shaders/point_light.vs", "resources/shaders/point_light.fs"};
-	Shader lightedObjectShader{"resources/shaders/lighted.vs", "resources/shaders/lighted.fs"};
+	Shader lightedTexturedObjectShader{"resources/shaders/texturedCube.vs", "resources/shaders/texturedCube.fs"};
 
 	Axes axes {};
 	StandardCube lightCube {};
-	StandardCube figure_cube {};
+	TextureCube figure_cube {};
 
 	CameraMoveCallbackManager cmcbManager {};
 	Camera camera{glm::vec3(0.0f, 0.0f, 3.0f)};
@@ -225,7 +225,7 @@ class App : public BaseApp {
 		if (cubeRotateValue > 360.0f)
 			cubeRotateValue -= 360.0f;
 		cubeRotate = glm::vec3(cubeRotateValue);
-		figure_cube.draw(lightedObjectShader, [&projection, &view, rotate=cubeRotate, cameraPos=camera.Position, pos=cubePosition, scale=cubeScale, lightPos_1=pointLightPosition_1, lightPos_2=pointLightPosition_2, plColor_1=pointLightColor_1, plColor_2=pointLightColor_2] (const Shader& shaderProg) {
+		figure_cube.draw(lightedTexturedObjectShader, [&projection, &view, rotate=cubeRotate, cameraPos=camera.Position, pos=cubePosition, scale=cubeScale, lightPos_1=pointLightPosition_1, lightPos_2=pointLightPosition_2, plColor_1=pointLightColor_1, plColor_2=pointLightColor_2, textureID=texture] (const Shader& shaderProg) {
 			glm::mat4 model {1.0f}; 
 			model = glm::translate(model, glm::vec3(pos.x, pos.y, pos.z));
 			model = glm::rotate(model, glm::radians(rotate.x), glm::vec3(1.0, 0.0, 0.0));
@@ -242,7 +242,10 @@ class App : public BaseApp {
 			shaderProg.set("pointLightsTurned[0]", pointLightsTurned[0]);
 			shaderProg.set("pointLightsTurned[1]", pointLightsTurned[1]);
 
-			shaderProg.set("material", curMat.get());
+			// shaderProg.set("material", curMat.get());
+			shaderProg.set("material.diffuse", 0);
+			shaderProg.set("material.specular", {0.5f, 0.5f, 0.5f});
+    		shaderProg.set("material.shininess", 64.0f);
 
 
 
@@ -261,6 +264,10 @@ class App : public BaseApp {
 			shaderProg.set("pointLights[1].constant", 1.0f);
 			shaderProg.set("pointLights[1].linear", 0.027f);
 			shaderProg.set("pointLights[1].quadratic", 0.0028f);
+
+
+			glActiveTexture(GL_TEXTURE0);
+			glBindTexture(GL_TEXTURE_2D, textureID);
 		});  
 
 		lightCube.draw(pointLightShader, [&projection, &view, pos=pointLightPosition_1, lightColor=pointLightColor_1] (const Shader& shaderProg) {
