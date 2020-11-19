@@ -87,11 +87,9 @@ class App : public BaseApp {
 	glm::vec3 pointLightColor_2 {1.0f};
 	// float specular {128.0f};
 
-	// texture
-	int t_width;
-	int t_height;
-	int t_nrChs;
-	unsigned texture;
+	// textures
+	unsigned diffuseTexture;
+	unsigned specularTexture;
 
 	void Start() override {
 		glEnable(GL_DEPTH_TEST);
@@ -107,13 +105,14 @@ class App : public BaseApp {
 		lightCube.initBuffers();
 		figure_cube.initBuffers();
 
-		auto [id, status] = TextureLoader::loadTexture("resources/textures/container2.png");
-		if (!status) {
-			std::cout << "Texture failed to load at path: " << "container2" << std::endl;
+		auto [id_1, status_1] = TextureLoader::loadTexture("resources/textures/container2.png");
+		auto [id_2, status_2] = TextureLoader::loadTexture("resources/textures/container2_specular.png");
+		if (!status_1 || !status_2) {
+			std::cout << "Texture failed to load!" << std::endl;
 			exit(0); // TODO handle
 		}
-		else
-			texture = id;
+		diffuseTexture = id_1;
+		specularTexture = id_2;
 	}
 
 	void Update(float dTime) override {
@@ -217,7 +216,7 @@ class App : public BaseApp {
 		if (cubeRotateValue > 360.0f)
 			cubeRotateValue -= 360.0f;
 		cubeRotate = glm::vec3(cubeRotateValue);
-		figure_cube.draw(lightedTexturedObjectShader, [&projection, &view, rotate=cubeRotate, cameraPos=camera.Position, pos=cubePosition, scale=cubeScale, lightPos_1=pointLightPosition_1, lightPos_2=pointLightPosition_2, plColor_1=pointLightColor_1, plColor_2=pointLightColor_2, textureID=texture] (const Shader& shaderProg) {
+		figure_cube.draw(lightedTexturedObjectShader, [&projection, &view, rotate=cubeRotate, cameraPos=camera.Position, pos=cubePosition, scale=cubeScale, lightPos_1=pointLightPosition_1, lightPos_2=pointLightPosition_2, plColor_1=pointLightColor_1, plColor_2=pointLightColor_2, diffTexture=diffuseTexture, specTexture=specularTexture] (const Shader& shaderProg) {
 			glm::mat4 model {1.0f}; 
 			model = glm::translate(model, glm::vec3(pos.x, pos.y, pos.z));
 			model = glm::rotate(model, glm::radians(rotate.x), glm::vec3(1.0, 0.0, 0.0));
@@ -236,7 +235,8 @@ class App : public BaseApp {
 
 			// shaderProg.set("material", curMat.get());
 			shaderProg.set("material.diffuse", 0);
-			shaderProg.set("material.specular", {0.5f, 0.5f, 0.5f});
+			shaderProg.set("material.specular", 1);
+			// shaderProg.set("material.specular", {0.5f, 0.5f, 0.5f});
     		shaderProg.set("material.shininess", 64.0f);
 
 
@@ -259,7 +259,9 @@ class App : public BaseApp {
 
 
 			glActiveTexture(GL_TEXTURE0);
-			glBindTexture(GL_TEXTURE_2D, textureID);
+			glBindTexture(GL_TEXTURE_2D, diffTexture);
+			glActiveTexture(GL_TEXTURE1);
+			glBindTexture(GL_TEXTURE_2D, specTexture);
 		});  
 
 		lightCube.draw(pointLightShader, [&projection, &view, pos=pointLightPosition_1, lightColor=pointLightColor_1] (const Shader& shaderProg) {
