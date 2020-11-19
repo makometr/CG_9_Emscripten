@@ -31,6 +31,7 @@
 #include "CameraMoveCallbackManager.hpp"
 #include "ogl_objects/AxesOpenGL.hpp"
 #include "ogl_objects/StandardCube.hpp"
+#include "ogl_objects/TextureCube.hpp"
 
 
 // Window dimensions
