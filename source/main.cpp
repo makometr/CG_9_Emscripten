@@ -10,6 +10,8 @@
 #include "glad/glad.h"
 #define GLFW_INCLUDE_NONE
 #include <GLFW/glfw3.h>
+#define STB_IMAGE_IMPLEMENTATION
+#include "stb_image.h"
 
 #include <entt/entt.hpp>
 #include <glm/glm.hpp>
@@ -96,6 +98,9 @@ class App : public BaseApp {
 		axes.initBuffers();
 		lightCube.initBuffers();
 		figure_cube.initBuffers();
+
+		// int width, height;
+    	// unsigned char* image = SOIL_load_image("resources/container.jpg", &width, &height, 0, SOIL_LOAD_RGB);
 	}
 
 	void Update(float dTime) override {
