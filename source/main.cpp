@@ -107,11 +107,13 @@ class App : public BaseApp {
 		lightCube.initBuffers();
 		figure_cube.initBuffers();
 
-		auto [id, status] = TextureLoader::loadTexture("resources/container2.png");
+		auto [id, status] = TextureLoader::loadTexture("resources/textures/container2.png");
 		if (!status) {
-			std::cout << "Texture failed to load at path: " << path << std::endl;
+			std::cout << "Texture failed to load at path: " << "container2" << std::endl;
 			exit(0); // TODO handle
 		}
+		else
+			texture = id;
 	}
 
 	void Update(float dTime) override {
