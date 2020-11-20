@@ -1,6 +1,7 @@
 **/build
 **/.vscode
 /Materials
+/extern/stb_image.h
 *.doc
 *.doc*
 
