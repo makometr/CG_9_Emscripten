@@ -32,6 +32,7 @@
 #include "ogl_objects/AxesOpenGL.hpp"
 #include "ogl_objects/StandardCube.hpp"
 #include "ogl_objects/TextureCube.hpp"
+#include "ogl_objects/TextureCylinder.hpp"
 
 
 
@@ -70,8 +71,9 @@ void initShadowMapping(GLuint& FBO, GLuint& depthTexture) {
 	glBindFramebuffer(GL_FRAMEBUFFER, 0); 
 }
 
-glm::mat4 genModel(glm::vec3 pos, glm::vec3 rot, glm::vec3 scale) {
-	glm::mat4 model = glm::translate(model, pos);
+glm::mat4 genModel(glm::vec3 pos = glm::vec3{0.0f}, glm::vec3 rot = glm::vec3{0.0f}, glm::vec3 scale = glm::vec3{1.0f}) {
+	glm::mat4 model = glm::mat4{1.0f};
+	model = glm::translate(model, pos);
 	model = glm::rotate(model, glm::radians(rot.x), glm::vec3(1.0, 0.0, 0.0));
 	model = glm::rotate(model, glm::radians(rot.y), glm::vec3(0.0, 1.0, 0.0));
 	model = glm::rotate(model, glm::radians(rot.z), glm::vec3(0.0, 0.0, 1.0));
@@ -117,6 +119,7 @@ class App : public BaseApp {
 	Axes axes {};
 	StandardCube lightCube {};
 	TextureCube figure_cube {};
+	TextureCylinder cylinder {1.0f, 0.5f};
 
 	CameraMoveCallbackManager cmcbManager {};
 	Camera camera{glm::vec3(0.0f, 0.0f, 3.0f)};
@@ -166,6 +169,7 @@ class App : public BaseApp {
 		axes.initBuffers();
 		lightCube.initBuffers();
 		figure_cube.initBuffers();
+		cylinder.initBuffers();
 
 		auto [id_1, status_1] = texture_load_result_1.get();
 		auto [id_2, status_2] = texture_load_result_2.get();
@@ -178,6 +182,13 @@ class App : public BaseApp {
 		initShadowMapping(depthMapFBO, depthMap);
 
 		glm::mat4 model {1.0f}; 
+		model = glm::mat4{1.0f};
+		model = glm::translate(model, glm::vec3(cubePosition));
+		model = glm::rotate(model, glm::radians(cubeRotate.x), glm::vec3(1.0, 0.0, 0.0));
+		model = glm::rotate(model, glm::radians(cubeRotate.y), glm::vec3(0.0, 1.0, 0.0));
+		model = glm::rotate(model, glm::radians(cubeRotate.z), glm::vec3(0.0, 0.0, 1.0));
+		model = glm::scale(model, glm::vec3(1.0f, 3.0f, 1.0f));
+		// drawables.push_back({figure_cube, model});
 		drawables.push_back({figure_cube, genModel(cubePosition, cubeRotate, glm::vec3{1.0f, 3.0f, 1.0f})});
 		model = glm::mat4{1.0f};
 		model = glm::translate(model, glm::vec3(cubePosition.x+1.5f, cubePosition.y-1.0f, cubePosition.z));
@@ -191,6 +202,8 @@ class App : public BaseApp {
 		model = glm::translate(model, glm::vec3(0.0f, -2.0f, 0.0f));
 		model = glm::scale(model, glm::vec3(30.0f, 0.1f, 30.0f));
 		drawables.push_back({figure_cube, model});
+		
+		drawables.push_back({cylinder, genModel({4.0f, 0.0f, 0.0f})});
 	}
 
 	void Update(float dTime) override {
@@ -218,9 +231,9 @@ class App : public BaseApp {
 		ImGui::SetNextWindowPos({10, 100}, ImGuiCond_Once);
 		ImGui::SetNextWindowCollapsed(false, ImGuiCond_Once);
 		ImGui::Begin("Light-1");
-			ImGui::SliderFloat("Translate: X", &pointLightPosition_1.x, -10.0, 10.0);
-			ImGui::SliderFloat("Translate: Y", &pointLightPosition_1.y, -10.0, 10.0);
-			ImGui::SliderFloat("Translate: Z", &pointLightPosition_1.z, -10.0, 10.0);
+			ImGui::SliderFloat("Direction: X", &pointLightPosition_1.x, -10.0, 10.0);
+			ImGui::SliderFloat("Direction: Y", &pointLightPosition_1.y, -10.0, 10.0);
+			ImGui::SliderFloat("Direction: Z", &pointLightPosition_1.z, -10.0, 10.0);
 			ImGui::SliderFloat3("Light Color", glm::value_ptr(pointLightColor_1), 0, 1);
 			ImGui::Checkbox("Light enabled", &pointLightsTurned[0]);
 		ImGui::End();
@@ -274,8 +287,9 @@ class App : public BaseApp {
 		glBindFramebuffer(GL_FRAMEBUFFER, depthMapFBO);
 		glClear(GL_DEPTH_BUFFER_BIT);
 		float near_plane = 0.1f, far_plane = 90.0f;
-		glm::mat4 lightProjection = glm::ortho(-10.0f, 10.0f, -10.0f, 10.0f, near_plane, far_plane);
-		glm::mat4 lightView = glm::lookAt(pointLightPosition_1*5.0f, 
+		float pSize = 30.0f;
+		glm::mat4 lightProjection = glm::ortho(-pSize, pSize, -pSize, pSize, near_plane, far_plane);
+		glm::mat4 lightView = glm::lookAt(pointLightPosition_1, 
 		                          glm::vec3(0.0f), 
 		                          glm::vec3(0.0f, 1.0f,  0.0f)); 
 		glm::mat4 lightSpaceMatrix = lightProjection * lightView; 
@@ -404,15 +418,15 @@ class App : public BaseApp {
 		// 	shaderProg.set("model", model);
 		// });
 
-		lightCube.draw(pointLightShader, [&projection, &view, pos=pointLightPosition_1, lightColor=pointLightColor_1] (const Shader& shaderProg) {
-			glm::mat4 model {1.0f};
-			model = glm::translate(model, glm::vec3{pos.x, pos.y, pos.z});
-			model = glm::scale(model, glm::vec3(0.2, 0.2, 0.2));
+		// lightCube.draw(pointLightShader, [&projection, &view, pos=pointLightPosition_1, lightColor=pointLightColor_1] (const Shader& shaderProg) {
+		// 	glm::mat4 model {1.0f};
+		// 	model = glm::translate(model, glm::vec3{pos.x, pos.y, pos.z});
+		// 	model = glm::scale(model, glm::vec3(0.2, 0.2, 0.2));
 
-			glm::mat4 transformMatrix = projection * view * model;
-			shaderProg.set("transform", transformMatrix);
-			shaderProg.set("objectColor", lightColor);
-		});
+		// 	glm::mat4 transformMatrix = projection * view * model;
+		// 	shaderProg.set("transform", transformMatrix);
+		// 	shaderProg.set("objectColor", lightColor);
+		// });
 
 		lightCube.draw(pointLightShader, [&projection, &view, pos=pointLightPosition_2, lightColor=pointLightColor_2] (const Shader& shaderProg) {
 			glm::mat4 model {1.0f};

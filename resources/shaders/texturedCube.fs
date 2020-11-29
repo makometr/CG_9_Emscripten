@@ -33,6 +33,7 @@ uniform bool pointLightsTurned[2];
 uniform sampler2D shadowMap;
 
 vec3 CalcPointLight(PointLight light, vec3 normal, vec3 fragPos, vec3 viewDir);
+vec3 CalcDirLight(PointLight light, vec3 normal, vec3 fragPos, vec3 viewDir);
 
 float ShadowCalculation()
 {
@@ -53,15 +54,36 @@ void main()
     vec3 viewDir = normalize(viewPos - FragPos);
 
     vec3 result = vec3(0.0f, 0.0f, 0.0f);
-    for(int i = 0; i < 2; i++) {
-        if (pointLightsTurned[i])
-            result += CalcPointLight(pointLights[i], norm, FragPos, viewDir);
-    }
+    // for(int i = 0; i < 2; i++) {
+    //     if (pointLightsTurned[i])
+    //         result += CalcPointLight(pointLights[i], norm, FragPos, viewDir);
+    // }
+
+    if (pointLightsTurned[0])
+        result += CalcDirLight(pointLights[0], norm, FragPos, viewDir);
+    if (pointLightsTurned[1])
+        result += CalcPointLight(pointLights[1], norm, FragPos, viewDir);
 
     FragColor = vec4(result, 1.0);
     // FragColor = vec4(vec3(1.0f - ShadowCalculation()), 1.0f);
 } 
 
+vec3 CalcDirLight(PointLight light, vec3 normal, vec3 fragPos, vec3 viewDir)
+{
+    vec3 lightDir = normalize(light.position);
+    // диффузное освещение
+    float diff = max(dot(normal, lightDir), 0.0);
+    // освещение зеркальных бликов
+    vec3 reflectDir = reflect(lightDir, normal);
+    float spec = pow(max(dot(viewDir, reflectDir), 0.0), material.shininess);
+
+    // комбинируем результаты
+    vec3 ambient = light.ambient * vec3(texture(material.diffuse, TexCoords));
+    vec3 diffuse = light.diffuse * diff * vec3(texture(material.diffuse, TexCoords));
+    vec3 specular = light.specular * spec * vec3(texture(material.specular, TexCoords));
+
+    return (ambient + (1.0f - ShadowCalculation()) * (diffuse + specular));
+} 
 
 vec3 CalcPointLight(PointLight light, vec3 normal, vec3 fragPos, vec3 viewDir)
 {
@@ -84,5 +106,5 @@ vec3 CalcPointLight(PointLight light, vec3 normal, vec3 fragPos, vec3 viewDir)
     diffuse  *= attenuation;
     specular *= attenuation;
     
-    return (ambient + (1.0f - ShadowCalculation()) * (diffuse + specular));
+    return (ambient + diffuse + specular);
 } 
