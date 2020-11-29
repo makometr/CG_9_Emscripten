@@ -23,13 +23,29 @@ out vec4 FragColor;
 in vec3 FragPos;
 in vec3 Normal;
 in vec2 TexCoords;
+in vec4 FragPosLightSpace; // For shadows
   
 uniform vec3 viewPos;
 uniform Material material;
 uniform PointLight pointLights[2];
 uniform bool pointLightsTurned[2];
 
+uniform sampler2D shadowMap;
+
 vec3 CalcPointLight(PointLight light, vec3 normal, vec3 fragPos, vec3 viewDir);
+
+float ShadowCalculation()
+{
+    vec3 projCoords = FragPosLightSpace.xyz / FragPosLightSpace.w;
+    projCoords = projCoords * 0.5 + 0.5; 
+    float closestDepth = texture(shadowMap, projCoords.xy).r;
+    float currentDepth = projCoords.z;
+    vec3 lightDir = pointLights[0].position;
+    float bias = max(0.05 * (1.0 - dot(normalize(Normal), normalize(lightDir))), 0.001);
+    float shadow = currentDepth - bias > closestDepth  ? 1.0 : 0.0;
+
+    return shadow;
+}
 
 void main()
 {
@@ -43,6 +59,7 @@ void main()
     }
 
     FragColor = vec4(result, 1.0);
+    // FragColor = vec4(vec3(1.0f - ShadowCalculation()), 1.0f);
 } 
 
 
@@ -67,5 +84,5 @@ vec3 CalcPointLight(PointLight light, vec3 normal, vec3 fragPos, vec3 viewDir)
     diffuse  *= attenuation;
     specular *= attenuation;
     
-    return (ambient + diffuse + specular);
+    return (ambient + (1.0f - ShadowCalculation()) * (diffuse + specular));
 } 

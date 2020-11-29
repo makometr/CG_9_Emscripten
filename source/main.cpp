@@ -34,6 +34,52 @@
 #include "ogl_objects/TextureCube.hpp"
 
 
+
+const unsigned int SHADOW_WIDTH = 1024, SHADOW_HEIGHT = 1024;
+const unsigned int SCR_WIDTH = 800, SCR_HEIGHT = 600;
+
+void initShadowMapping(GLuint& FBO, GLuint& depthTexture) {
+	glGenFramebuffers(1, &FBO);  
+	glBindFramebuffer(GL_FRAMEBUFFER, FBO);
+
+	glGenTextures(1, &depthTexture);
+	glBindTexture(GL_TEXTURE_2D, depthTexture);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT32F, 
+	             SHADOW_WIDTH, SHADOW_HEIGHT, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT); 
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);  
+	
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, depthTexture, 0);
+
+	GLuint tex;
+	glGenTextures(1, &tex);
+	glBindTexture(GL_TEXTURE_2D, tex);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, SHADOW_WIDTH, SHADOW_HEIGHT,
+		0, GL_RGBA, GL_UNSIGNED_BYTE, 0);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, tex, 0);
+	// glDrawBuffers(0, nullptr);
+	// glReadBuffer(GL_NONE);
+
+	glBindFramebuffer(GL_FRAMEBUFFER, 0); 
+}
+
+glm::mat4 genModel(glm::vec3 pos, glm::vec3 rot, glm::vec3 scale) {
+	glm::mat4 model = glm::translate(model, pos);
+	model = glm::rotate(model, glm::radians(rot.x), glm::vec3(1.0, 0.0, 0.0));
+	model = glm::rotate(model, glm::radians(rot.y), glm::vec3(0.0, 1.0, 0.0));
+	model = glm::rotate(model, glm::radians(rot.z), glm::vec3(0.0, 0.0, 1.0));
+	model = glm::scale(model, scale);
+	return model;
+}
+
+
 // Window dimensions
 // TODO move to state 
 constexpr GLuint WIDTH = 800, HEIGHT = 600;
@@ -55,11 +101,18 @@ enum class ViewType {
 	Orto
 };
 
+struct DrawablePair {
+	AbstractOpenGLObject &obj;
+	glm::mat4 model;
+};
+
 class App : public BaseApp {
 	// Shader basicShader{"resources/shaders/basic.vs", "resources/shaders/basic.fs"};
 	Shader axesShader{"resources/shaders/axes.vs", "resources/shaders/axes.fs"};
 	Shader pointLightShader{"resources/shaders/point_light.vs", "resources/shaders/point_light.fs"};
 	Shader lightedTexturedObjectShader{"resources/shaders/texturedCube.vs", "resources/shaders/texturedCube.fs"};
+	Shader shadowMapShader{"resources/shaders/shadow.vs", "resources/shaders/shadow.fs"};
+
 
 	Axes axes {};
 	StandardCube lightCube {};
@@ -92,6 +145,12 @@ class App : public BaseApp {
 	unsigned diffuseTexture;
 	unsigned specularTexture;
 
+	GLuint depthMap;
+	GLuint depthMapFBO;
+
+	std::vector<DrawablePair> drawables;
+
+
 	void Start() override {
 		auto texture_load_result_1 = std::async(std::launch::deferred,TextureLoader::loadTexture, "resources/textures/container2.png");
 		auto texture_load_result_2 = std::async(std::launch::deferred,TextureLoader::loadTexture, "resources/textures/container2_specular.png");
@@ -116,6 +175,22 @@ class App : public BaseApp {
 		}
 		diffuseTexture = id_1;
 		specularTexture = id_2;
+		initShadowMapping(depthMapFBO, depthMap);
+
+		glm::mat4 model {1.0f}; 
+		drawables.push_back({figure_cube, genModel(cubePosition, cubeRotate, glm::vec3{1.0f, 3.0f, 1.0f})});
+		model = glm::mat4{1.0f};
+		model = glm::translate(model, glm::vec3(cubePosition.x+1.5f, cubePosition.y-1.0f, cubePosition.z));
+		model = glm::rotate(model, glm::radians(cubeRotate.x), glm::vec3(1.0, 0.0, 0.0));
+		model = glm::rotate(model, glm::radians(cubeRotate.y), glm::vec3(0.0, 1.0, 0.0));
+		model = glm::rotate(model, glm::radians(cubeRotate.z), glm::vec3(0.0, 0.0, 1.0));
+		model = glm::scale(model, glm::vec3(2.0f, 1.0f, 1.0f));
+		drawables.push_back({figure_cube, model});
+		// "Plane"
+		model = glm::mat4{1.0f}; 
+		model = glm::translate(model, glm::vec3(0.0f, -2.0f, 0.0f));
+		model = glm::scale(model, glm::vec3(30.0f, 0.1f, 30.0f));
+		drawables.push_back({figure_cube, model});
 	}
 
 	void Update(float dTime) override {
@@ -127,7 +202,6 @@ class App : public BaseApp {
 			cmcbManager.applyPlayerMoveControllerChanges(deltaTime);
 
 		glfwPollEvents();
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 		ImGui::SetNextWindowSize({300, 80}, ImGuiCond_Once);
 		ImGui::SetNextWindowPos({10, 10}, ImGuiCond_Once);
@@ -187,6 +261,42 @@ class App : public BaseApp {
 		// if (materialType == 2)
 		// 	curMat = materialManager.getMaterial(MaterialType::Emerlad);
 
+
+		// Update "Physics"
+		cubeRotateValue += (std::sin(glfwGetTime())+1) * cubeRotateSpeed/50;
+		if (cubeRotateValue > 360.0f)
+			cubeRotateValue -= 360.0f;
+		cubeRotate = glm::vec3(cubeRotateValue);
+
+		// First calculate shadows
+
+		glViewport(0, 0, SHADOW_WIDTH, SHADOW_HEIGHT);
+		glBindFramebuffer(GL_FRAMEBUFFER, depthMapFBO);
+		glClear(GL_DEPTH_BUFFER_BIT);
+		float near_plane = 0.1f, far_plane = 90.0f;
+		glm::mat4 lightProjection = glm::ortho(-10.0f, 10.0f, -10.0f, 10.0f, near_plane, far_plane);
+		glm::mat4 lightView = glm::lookAt(pointLightPosition_1*5.0f, 
+		                          glm::vec3(0.0f), 
+		                          glm::vec3(0.0f, 1.0f,  0.0f)); 
+		glm::mat4 lightSpaceMatrix = lightProjection * lightView; 
+		shadowMapShader.use();
+		shadowMapShader.set("lightSpaceMatrix", lightSpaceMatrix);
+		shadowMapShader.set("model", glm::mat4{1.0f});
+
+		// Draw all "visible" objects
+		
+		for (auto &drawable : drawables) {
+			drawable.obj.draw(shadowMapShader, [model=drawable.model] (const Shader& shaderProg) {
+				shaderProg.set("model", model);
+			});
+		}
+
+		// Then render scene itself
+
+		glBindFramebuffer(GL_FRAMEBUFFER, 0);
+		glViewport(0, 0, WIDTH, HEIGHT);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
         glm::mat4 view = camera.GetViewMatrix();
 
         glm::mat4 projection {1.0f};
@@ -215,100 +325,84 @@ class App : public BaseApp {
 			});
 		}
 
-		cubeRotateValue += (std::sin(glfwGetTime())+1) * cubeRotateSpeed/50;
-		if (cubeRotateValue > 360.0f)
-			cubeRotateValue -= 360.0f;
-		cubeRotate = glm::vec3(cubeRotateValue);
-		figure_cube.draw(lightedTexturedObjectShader, [&projection, &view, rotate=cubeRotate, cameraPos=camera.Position, pos=cubePosition, scale=cubeScale, lightPos_1=pointLightPosition_1, lightPos_2=pointLightPosition_2, plColor_1=pointLightColor_1, plColor_2=pointLightColor_2, diffTexture=diffuseTexture, specTexture=specularTexture] (const Shader& shaderProg) {
-			glm::mat4 model {1.0f}; 
-			model = glm::translate(model, glm::vec3(pos.x, pos.y, pos.z));
-			model = glm::rotate(model, glm::radians(rotate.x), glm::vec3(1.0, 0.0, 0.0));
-			model = glm::rotate(model, glm::radians(rotate.y), glm::vec3(0.0, 1.0, 0.0));
-			model = glm::rotate(model, glm::radians(rotate.z), glm::vec3(0.0, 0.0, 1.0));
-			model = glm::scale(model, glm::vec3(1.0f, 3.0f, 1.0f));
+		lightedTexturedObjectShader.use();
+		lightedTexturedObjectShader.set("view", view);
+		lightedTexturedObjectShader.set("projection", projection);
+		// lightedTexturedObjectShader.set("transform", transformMatrix);
+		// lightedTexturedObjectShader.set("objectColor", glm::vec3(102.0f/256.0f, 1.0f, 1.0f));
+		lightedTexturedObjectShader.set("pointLightsTurned[0]", pointLightsTurned[0]);
+		lightedTexturedObjectShader.set("pointLightsTurned[1]", pointLightsTurned[1]);
 
-			// glm::mat4 transformMatrix = projection * view * model;
-			shaderProg.set("model", model);
-			shaderProg.set("view", view);
-			shaderProg.set("projection", projection);
-			// shaderProg.set("transform", transformMatrix);
-			// shaderProg.set("objectColor", glm::vec3(102.0f/256.0f, 1.0f, 1.0f));
-			shaderProg.set("pointLightsTurned[0]", pointLightsTurned[0]);
-			shaderProg.set("pointLightsTurned[1]", pointLightsTurned[1]);
-
-			// shaderProg.set("material", curMat.get());
-			shaderProg.set("material.diffuse", 0);
-			shaderProg.set("material.specular", 1);
-    		shaderProg.set("material.shininess", 64.0f);
+		lightedTexturedObjectShader.set("material.diffuse", 0);
+		lightedTexturedObjectShader.set("material.specular", 1);
+		lightedTexturedObjectShader.set("material.shininess", 64.0f);
 
 
-			shaderProg.set("pointLights[0].position", lightPos_1);
-			shaderProg.set("pointLights[0].ambient", plColor_1 * glm::vec3{1.0f, 1.0f, 1.0f});
-			shaderProg.set("pointLights[0].diffuse", plColor_1 * glm::vec3{1.0f, 1.0f, 1.0f});
-			shaderProg.set("pointLights[0].specular", plColor_1 * glm::vec3{1.0f, 1.0f, 1.0f});
-			shaderProg.set("pointLights[0].constant", 1.0f);
-			shaderProg.set("pointLights[0].linear", 0.14f);  
-			shaderProg.set("pointLights[0].quadratic", 0.07f);
+		lightedTexturedObjectShader.set("pointLights[0].position", pointLightPosition_1);
+		lightedTexturedObjectShader.set("pointLights[0].ambient", pointLightColor_1 * glm::vec3{1.0f, 1.0f, 1.0f});
+		lightedTexturedObjectShader.set("pointLights[0].diffuse", pointLightColor_1 * glm::vec3{1.0f, 1.0f, 1.0f});
+		lightedTexturedObjectShader.set("pointLights[0].specular", pointLightColor_1 * glm::vec3{1.0f, 1.0f, 1.0f});
+		lightedTexturedObjectShader.set("pointLights[0].constant", 1.0f);
+		lightedTexturedObjectShader.set("pointLights[0].linear", 0.14f);
+		lightedTexturedObjectShader.set("pointLights[0].quadratic", 0.07f);
 
-			shaderProg.set("pointLights[1].position", lightPos_2);
-			shaderProg.set("pointLights[1].ambient", plColor_2 * glm::vec3{1.0f, 1.0f, 1.0f});
-			shaderProg.set("pointLights[1].diffuse", plColor_2 * glm::vec3{1.0f, 1.0f, 1.0f});
-			shaderProg.set("pointLights[1].specular", plColor_2 * glm::vec3{1.0f, 1.0f, 1.0f});
-			shaderProg.set("pointLights[1].constant", 1.0f);
-			shaderProg.set("pointLights[1].linear", 0.14f);
-			shaderProg.set("pointLights[1].quadratic", 0.07f);
+		lightedTexturedObjectShader.set("pointLights[1].position", pointLightPosition_2);
+		lightedTexturedObjectShader.set("pointLights[1].ambient", pointLightColor_2 * glm::vec3{1.0f, 1.0f, 1.0f});
+		lightedTexturedObjectShader.set("pointLights[1].diffuse", pointLightColor_2 * glm::vec3{1.0f, 1.0f, 1.0f});
+		lightedTexturedObjectShader.set("pointLights[1].specular", pointLightColor_2 * glm::vec3{1.0f, 1.0f, 1.0f});
+		lightedTexturedObjectShader.set("pointLights[1].constant", 1.0f);
+		lightedTexturedObjectShader.set("pointLights[1].linear", 0.14f);
+		lightedTexturedObjectShader.set("pointLights[1].quadratic", 0.07f);
 
-
-			glActiveTexture(GL_TEXTURE0);
-			glBindTexture(GL_TEXTURE_2D, diffTexture);
-			glActiveTexture(GL_TEXTURE1);
-			glBindTexture(GL_TEXTURE_2D, specTexture);
-		});
-
-		figure_cube.draw(lightedTexturedObjectShader, [&projection, &view, rotate=cubeRotate, cameraPos=camera.Position, pos=cubePosition, scale=cubeScale, lightPos_1=pointLightPosition_1, lightPos_2=pointLightPosition_2, plColor_1=pointLightColor_1, plColor_2=pointLightColor_2, diffTexture=diffuseTexture, specTexture=specularTexture] (const Shader& shaderProg) {
-			glm::mat4 model {1.0f}; 
-			model = glm::translate(model, glm::vec3(pos.x+1.5f, pos.y-1.0f, pos.z));
-			model = glm::rotate(model, glm::radians(rotate.x), glm::vec3(1.0, 0.0, 0.0));
-			model = glm::rotate(model, glm::radians(rotate.y), glm::vec3(0.0, 1.0, 0.0));
-			model = glm::rotate(model, glm::radians(rotate.z), glm::vec3(0.0, 0.0, 1.0));
-			model = glm::scale(model, glm::vec3(2.0f, 1.0f, 1.0f));
-
-			// glm::mat4 transformMatrix = projection * view * model;
-			shaderProg.set("model", model);
-			shaderProg.set("view", view);
-			shaderProg.set("projection", projection);
-			// shaderProg.set("transform", transformMatrix);
-			// shaderProg.set("objectColor", glm::vec3(102.0f/256.0f, 1.0f, 1.0f));
-			shaderProg.set("pointLightsTurned[0]", pointLightsTurned[0]);
-			shaderProg.set("pointLightsTurned[1]", pointLightsTurned[1]);
-
-			shaderProg.set("material.diffuse", 0);
-			shaderProg.set("material.specular", 1);
-    		shaderProg.set("material.shininess", 64.0f);
+		lightedTexturedObjectShader.set("lightSpaceMatrix", lightSpaceMatrix);
+		lightedTexturedObjectShader.set("shadowMap", 2);
 
 
-			shaderProg.set("pointLights[0].position", lightPos_1);
-			shaderProg.set("pointLights[0].ambient", plColor_1 * glm::vec3{1.0f, 1.0f, 1.0f});
-			shaderProg.set("pointLights[0].diffuse", plColor_1 * glm::vec3{1.0f, 1.0f, 1.0f});
-			shaderProg.set("pointLights[0].specular", plColor_1 * glm::vec3{1.0f, 1.0f, 1.0f});
-			shaderProg.set("pointLights[0].constant", 1.0f);
-			shaderProg.set("pointLights[0].linear", 0.14f);
-			shaderProg.set("pointLights[0].quadratic", 0.07f);
-
-			shaderProg.set("pointLights[1].position", lightPos_2);
-			shaderProg.set("pointLights[1].ambient", plColor_2 * glm::vec3{1.0f, 1.0f, 1.0f});
-			shaderProg.set("pointLights[1].diffuse", plColor_2 * glm::vec3{1.0f, 1.0f, 1.0f});
-			shaderProg.set("pointLights[1].specular", plColor_2 * glm::vec3{1.0f, 1.0f, 1.0f});
-			shaderProg.set("pointLights[1].constant", 1.0f);
-			shaderProg.set("pointLights[1].linear", 0.14f);
-			shaderProg.set("pointLights[1].quadratic", 0.07f);
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, diffuseTexture);
+		glActiveTexture(GL_TEXTURE1);
+		glBindTexture(GL_TEXTURE_2D, specularTexture);
+		glActiveTexture(GL_TEXTURE2);
+		glBindTexture(GL_TEXTURE_2D, depthMap);
 
 
-			glActiveTexture(GL_TEXTURE0);
-			glBindTexture(GL_TEXTURE_2D, diffTexture);
-			glActiveTexture(GL_TEXTURE1);
-			glBindTexture(GL_TEXTURE_2D, specTexture);
-		});
+		for (auto &drawable : drawables) {
+			drawable.obj.draw(lightedTexturedObjectShader, [model=drawable.model] (const Shader& shaderProg) {
+				shaderProg.set("model", model);
+			});
+		}
+		// figure_cube.draw(lightedTexturedObjectShader, [&projection, &view, rotate=cubeRotate, cameraPos=camera.Position, pos=cubePosition, scale=cubeScale, lightPos_1=pointLightPosition_1, lightPos_2=pointLightPosition_2, plColor_1=pointLightColor_1, plColor_2=pointLightColor_2, diffTexture=diffuseTexture, specTexture=specularTexture] (const Shader& shaderProg) {
+		// figure_cube.draw(lightedTexturedObjectShader, [rotate=cubeRotate, pos=cubePosition, scale=cubeScale] (const Shader& shaderProg) {
+		// 	glm::mat4 model {1.0f}; 
+		// 	model = glm::translate(model, glm::vec3(pos.x, pos.y, pos.z));
+		// 	model = glm::rotate(model, glm::radians(rotate.x), glm::vec3(1.0, 0.0, 0.0));
+		// 	model = glm::rotate(model, glm::radians(rotate.y), glm::vec3(0.0, 1.0, 0.0));
+		// 	model = glm::rotate(model, glm::radians(rotate.z), glm::vec3(0.0, 0.0, 1.0));
+		// 	model = glm::scale(model, glm::vec3(1.0f, 3.0f, 1.0f));
+
+		// 	// glm::mat4 transformMatrix = projection * view * model;
+		// 	shaderProg.set("model", model);
+
+		// });
+
+		
+		// figure_cube.draw(lightedTexturedObjectShader, [rotate=cubeRotate, pos=cubePosition, scale=cubeScale] (const Shader& shaderProg) {
+		// 	glm::mat4 model {1.0f}; 
+		// 	model = glm::translate(model, glm::vec3(pos.x+1.5f, pos.y-1.0f, pos.z));
+		// 	model = glm::rotate(model, glm::radians(rotate.x), glm::vec3(1.0, 0.0, 0.0));
+		// 	model = glm::rotate(model, glm::radians(rotate.y), glm::vec3(0.0, 1.0, 0.0));
+		// 	model = glm::rotate(model, glm::radians(rotate.z), glm::vec3(0.0, 0.0, 1.0));
+		// 	model = glm::scale(model, glm::vec3(2.0f, 1.0f, 1.0f));
+		// 	shaderProg.set("model", model);
+		// });
+
+		// // "Plane"
+		// figure_cube.draw(lightedTexturedObjectShader, [rotate=cubeRotate, pos=cubePosition, scale=cubeScale] (const Shader& shaderProg) {
+		// 	glm::mat4 model {1.0f}; 
+		// 	model = glm::translate(model, glm::vec3(0.0f, -2.0f, 0.0f));
+		// 	model = glm::scale(model, glm::vec3(30.0f, 0.1f, 30.0f));
+		// 	shaderProg.set("model", model);
+		// });
 
 		lightCube.draw(pointLightShader, [&projection, &view, pos=pointLightPosition_1, lightColor=pointLightColor_1] (const Shader& shaderProg) {
 			glm::mat4 model {1.0f};
