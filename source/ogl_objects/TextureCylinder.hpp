@@ -20,17 +20,32 @@ public:
                 0.0f, -1.0f, 0.0f, // Normal
                 1.0f, angle/360.0f, // Tex
             });
-            vertices.insert(vertices.end(), { // Center of circle
+            auto middle = {
                 0.0f, -0.5f, 0.0f, // Pos
                 0.0f, -1.0f, 0.0f, // Normal
                 0.0f, 0.0f, // Tex
-            });
+            };
+            vertices.insert(vertices.end(), middle);
             angle += angleStepSize;
             vertices.insert(vertices.end(), {
                 radiusDown*glm::cos(glm::radians(angle)), -0.5f, radiusDown*glm::sin(glm::radians(angle)), // Pos
                 0.0f, -1.0f, 0.0f, // Normal
                 1.0f, angle/360.0f, // Tex
             });
+
+            if (i == pointsCircleNum-1) {
+                vertices.insert(vertices.end(), {
+                    radiusDown*glm::cos(glm::radians(angle)), -0.5f, radiusDown*glm::sin(glm::radians(angle)), // Pos
+                    0.0f, -1.0f, 0.0f, // Normal
+                    1.0f, angle/360.0f, // Tex
+                }); 
+                vertices.insert(vertices.end(), middle);
+                vertices.insert(vertices.end(), {
+                    radiusDown, -0.5f, 0.0f, // Pos
+                    0.0f, -1.0f, 0.0f, // Normal
+                    1.0f, 1.0f, // Tex
+                });
+            }
         }
         // Top
         for (int i = 0; i < pointsCircleNum; i++){
@@ -41,17 +56,32 @@ public:
                 0.0f, -1.0f, 0.0f, // Normal
                 1.0f, angle/360.0f, // Tex
             });
-            vertices.insert(vertices.end(), { // Center of circle
+            auto middle = {
                 0.0f, 0.5f, 0.0f, // Pos
                 0.0f, 1.0f, 0.0f, // Normal
                 0.0f, 0.0f, // Tex
-            });
+            };
+            vertices.insert(vertices.end(), middle);
             angle += angleStepSize;
             vertices.insert(vertices.end(), {
                 radiusUp*glm::cos(glm::radians(angle)), 0.5f, radiusUp*glm::sin(glm::radians(angle)), // Pos
-                0.0f, -1.0f, 0.0f, // Normal
+                0.0f, 1.0f, 0.0f, // Normal
                 1.0f, angle/360.0f, // Tex
             });
+
+            if (i == pointsCircleNum-1) {
+                vertices.insert(vertices.end(), {
+                    radiusUp*glm::cos(glm::radians(angle)), 0.5f, radiusUp*glm::sin(glm::radians(angle)), // Pos
+                    0.0f, 1.0f, 0.0f, // Normal
+                    1.0f, angle/360.0f, // Tex
+                }); 
+                vertices.insert(vertices.end(), middle);
+                vertices.insert(vertices.end(), {
+                    radiusUp, 0.5f, 0.0f, // Pos
+                    0.0f, 1.0f, 0.0f, // Normal
+                    1.0f, 1.0f, // Tex
+                });
+            }
         }
         // Side
         for (int i = 0; i < pointsCircleNum; i++){
@@ -88,6 +118,28 @@ public:
             vertices.insert(vertices.end(), rt);
             vertices.insert(vertices.end(), lb);
             vertices.insert(vertices.end(), rb);
+
+            if (i == pointsCircleNum-1) {
+                vertices.insert(vertices.end(), rt);
+                vertices.insert(vertices.end(), rb);
+                vertices.insert(vertices.end(), {
+                    radiusDown, -0.5f, 0.0f, // Pos
+                    radiusDown, 0.0f, 0.0f, // Normal
+                    0.0f, 1.0f, // Tex
+                });
+
+                vertices.insert(vertices.end(), rt);
+                vertices.insert(vertices.end(), {
+                    radiusUp, 0.5f, 0.0f, // Pos
+                    radiusUp, 0.0f, 0.0f, // Normal
+                    0.0f, 1.0f, // Tex
+                });
+                vertices.insert(vertices.end(), {
+                    radiusDown, -0.5f, 0.0f, // Pos
+                    radiusDown, 0.0f, 0.0f, // Normal
+                    0.0f, 1.0f, // Tex
+                });
+            }
         }
         len = std::size(vertices);
 		GLuint VBO;
@@ -117,7 +169,7 @@ public:
         glBindVertexArray(0);
     }
 private:
-    const int pointsCircleNum = 10;
+    const int pointsCircleNum = 30;
     GLuint len;
     float radiusDown, radiusUp;
 };

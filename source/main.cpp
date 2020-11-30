@@ -105,7 +105,7 @@ enum class ViewType {
 
 struct DrawablePair {
 	AbstractOpenGLObject &obj;
-	glm::mat4 model;
+	glm::vec3 translate, rotate, scale;
 };
 
 class App : public BaseApp {
@@ -119,7 +119,8 @@ class App : public BaseApp {
 	Axes axes {};
 	StandardCube lightCube {};
 	TextureCube figure_cube {};
-	TextureCylinder cylinder {1.0f, 0.5f};
+	TextureCylinder cylinder {1.0f, 1.0f};
+	TextureCylinder conus_1 {0.6f, 1.0f};
 
 	CameraMoveCallbackManager cmcbManager {};
 	Camera camera{glm::vec3(0.0f, 0.0f, 3.0f)};
@@ -152,7 +153,7 @@ class App : public BaseApp {
 	GLuint depthMapFBO;
 
 	std::vector<DrawablePair> drawables;
-
+	int editableObjectIndex = 0;
 
 	void Start() override {
 		auto texture_load_result_1 = std::async(std::launch::deferred,TextureLoader::loadTexture, "resources/textures/container2.png");
@@ -170,6 +171,7 @@ class App : public BaseApp {
 		lightCube.initBuffers();
 		figure_cube.initBuffers();
 		cylinder.initBuffers();
+		conus_1.initBuffers();
 
 		auto [id_1, status_1] = texture_load_result_1.get();
 		auto [id_2, status_2] = texture_load_result_2.get();
@@ -181,20 +183,85 @@ class App : public BaseApp {
 		specularTexture = id_2;
 		initShadowMapping(depthMapFBO, depthMap);
 
-		
 
-		drawables.push_back({figure_cube, genModel(cubePosition, cubeRotate, glm::vec3{1.0f, 3.0f, 1.0f})});
-		drawables.push_back({figure_cube, genModel(glm::vec3(cubePosition.x+1.5f, cubePosition.y-1.0f, cubePosition.z), cubeRotate, glm::vec3{2.0f, 1.0f, 1.0f})});
-
-		 
 		{ // "Plane" 
 			glm::vec3 translate (0.0f, -2.0f, 0.0f);
 			glm::vec3 rotate {1.0f};
 			glm::vec3 scale(30.0f, 0.1f, 30.0f);
-			drawables.push_back({figure_cube, genModel(translate, rotate, scale)});
+			drawables.push_back({figure_cube, translate, rotate, scale}); // 0
 		}
-		
-		drawables.push_back({cylinder, genModel({4.0f, 0.0f, 0.0f})});
+
+
+		glm::vec3 beginCoordinate {-6.0f, 0.0f, 0.0f};
+		float carriageSize = 4.0f;
+		// Car 1
+		{ // "Car platform" 
+			glm::vec3 translate = beginCoordinate;
+			glm::vec3 rotate {0.0f, 0.0f, 90.0f};
+			glm::vec3 scale{0.8f, 2.4f, 0.8f};
+			drawables.push_back({figure_cube, translate, rotate, scale});
+		}
+		{ // "wHEEL tl" 
+			glm::vec3 translate {-6.58f, -0.26f, 0.52f};
+			glm::vec3 rotate {90.0f, 0.0f, 0.0f};
+			glm::vec3 scale{0.474f, 0.237f, 0.474};
+			drawables.push_back({cylinder, translate, rotate, scale});
+		}
+		{ // "wHEEL bl" 
+			glm::vec3 translate {-5.4f, -0.26f, 0.52f};
+			glm::vec3 rotate {90.0f, 0.0f, 0.0f};
+			glm::vec3 scale{0.474f, 0.237f, 0.474};
+			drawables.push_back({cylinder, translate, rotate, scale});
+		}
+		{ // "wHEEL ur" 
+			glm::vec3 translate {-6.58f, -0.26f, -0.52f};
+			glm::vec3 rotate {90.0f, 0.0f, 0.0f};
+			glm::vec3 scale{0.474f, 0.237f, 0.474};
+			drawables.push_back({cylinder, translate, rotate, scale});
+		}
+		{ // "wHEEL dr" 
+			glm::vec3 translate {-5.4f, -0.26f, -0.52f};
+			glm::vec3 rotate {90.0f, 0.0f, 0.0f};
+			glm::vec3 scale{0.474f, 0.237f, 0.474};
+			drawables.push_back({cylinder, translate, rotate, scale});
+		}
+		{ // "Car cabine" 
+			glm::vec3 translate {-5.2f, 0.8f, 0.0f};
+			glm::vec3 rotate {0.0f, 0.0f, 0.0f};
+			glm::vec3 scale{0.8f, 0.8f, 0.8f};
+			drawables.push_back({figure_cube, translate, rotate, scale});
+		}
+		{ // "Car roofdw" 
+			glm::vec3 translate {-5.2f, 1.35f, 0.0f};
+			glm::vec3 rotate {0.0f, 0.0f, 0.0f};
+			glm::vec3 scale{0.8f, 0.3f, 0.9f};
+			drawables.push_back({figure_cube, translate, rotate, scale});
+		}
+		{ // "Engine" 
+			glm::vec3 translate {-6.35f, 0.9f, 0.0f};
+			glm::vec3 rotate {0.0f, 0.0f, 90.0f};
+			glm::vec3 scale{0.5f, 1.5f, 0.5f};
+			drawables.push_back({cylinder, translate, rotate, scale});
+		}
+		{ // "Truba" 
+			glm::vec3 translate {-6.62f, 1.74f, 0.0f};
+			glm::vec3 rotate {0.0f, 0.0f, 0.0f};
+			glm::vec3 scale{0.4f, 0.8f, 0.4f};
+			drawables.push_back({conus_1, translate, rotate, scale});
+		}
+		{ // "Car 1-2 coupling"
+			glm::vec3 translate {-4.48f, -0.24f, 0.0f};
+			glm::vec3 rotate {0.0f, 0.0f, 0.0f};
+			glm::vec3 scale{0.65f, 0.3f, 0.8f};
+			drawables.push_back({figure_cube, translate, rotate, scale});
+		}
+		{ // "Car 2-1 coupling"
+			glm::vec3 translate {-4.48f, 0.1f, 0.0f};
+			glm::vec3 rotate {0.0f, 0.0f, 0.0f};
+			glm::vec3 scale{0.65f, 0.3f, 0.8f};
+			drawables.push_back({figure_cube, translate, rotate, scale});
+		}
+
 	}
 
 	void Update(float dTime) override {
@@ -207,20 +274,26 @@ class App : public BaseApp {
 
 		glfwPollEvents();
 
-		ImGui::SetNextWindowSize({300, 80}, ImGuiCond_Once);
+		ImGui::SetNextWindowSize({780, 130}, ImGuiCond_Once);
 		ImGui::SetNextWindowPos({10, 10}, ImGuiCond_Once);
 		ImGui::SetNextWindowCollapsed(false, ImGuiCond_Once);
-		ImGui::Begin("Camera");
-			static int ProjectionType = 0;
-			ImGui::RadioButton("Perspective", &ProjectionType, 0); ImGui::SameLine();
-			ImGui::RadioButton("Orthographic", &ProjectionType, 1);
-			ImGui::Checkbox("Axes enabled", &isAxesEnabled);
+		ImGui::Begin("Editor");
+			ImGui::SliderInt("Current index", &editableObjectIndex, 0, std::size(drawables)-1);
+			ImGui::SliderFloat3("Position", &(drawables[editableObjectIndex].translate.x), -8.0f, 2.0f);
+			ImGui::SliderFloat3("Rotation", &(drawables[editableObjectIndex].rotate.x), 0.0f, 360.0f);
+			ImGui::SliderFloat3("Scale", &(drawables[editableObjectIndex].scale.x), -3.0f, 3.0f);
 		ImGui::End();
+		// ImGui::Begin("Camera");
+			static int ProjectionType = 0;
+		// 	ImGui::RadioButton("Perspective", &ProjectionType, 0); ImGui::SameLine();
+		// 	ImGui::RadioButton("Orthographic", &ProjectionType, 1);
+		// 	ImGui::Checkbox("Axes enabled", &isAxesEnabled);
+		// ImGui::End();
 
 
-		ImGui::SetNextWindowSize({300, 150}, ImGuiCond_Once);
-		ImGui::SetNextWindowPos({10, 100}, ImGuiCond_Once);
-		ImGui::SetNextWindowCollapsed(false, ImGuiCond_Once);
+		ImGui::SetNextWindowSize({300, 350}, ImGuiCond_Once);
+		ImGui::SetNextWindowPos({10, 500}, ImGuiCond_Once);
+		ImGui::SetNextWindowCollapsed(true, ImGuiCond_Once);
 		ImGui::Begin("Light-1");
 			ImGui::SliderFloat("Direction: X", &pointLightPosition_1.x, -10.0, 10.0);
 			ImGui::SliderFloat("Direction: Y", &pointLightPosition_1.y, -10.0, 10.0);
@@ -229,9 +302,9 @@ class App : public BaseApp {
 			ImGui::Checkbox("Light enabled", &pointLightsTurned[0]);
 		ImGui::End();
 
-		ImGui::SetNextWindowSize({300, 150}, ImGuiCond_Once);
-		ImGui::SetNextWindowPos({10, 260}, ImGuiCond_Once);
-		ImGui::SetNextWindowCollapsed(false, ImGuiCond_Once);
+		ImGui::SetNextWindowSize({300, 200}, ImGuiCond_Once);
+		ImGui::SetNextWindowPos({10, 550}, ImGuiCond_Once);
+		ImGui::SetNextWindowCollapsed(true, ImGuiCond_Once);
 		ImGui::Begin("Light-2");
 			ImGui::SliderFloat("Translate: X", &pointLightPosition_2.x, -10.0, 10.0);
 			ImGui::SliderFloat("Translate: Y", &pointLightPosition_2.y, -10.0, 10.0);
@@ -291,7 +364,8 @@ class App : public BaseApp {
 		// Draw all "visible" objects
 		
 		for (auto &drawable : drawables) {
-			drawable.obj.draw(shadowMapShader, [model=drawable.model] (const Shader& shaderProg) {
+			drawable.obj.draw(shadowMapShader, [&drawable] (const Shader& shaderProg) {
+				glm::mat4 model = genModel(drawable.translate, drawable.rotate, drawable.scale);
 				shaderProg.set("model", model);
 			});
 		}
@@ -369,10 +443,23 @@ class App : public BaseApp {
 		glBindTexture(GL_TEXTURE_2D, specularTexture);
 		glActiveTexture(GL_TEXTURE2);
 		glBindTexture(GL_TEXTURE_2D, depthMap);
+		glActiveTexture(GL_TEXTURE0);
+		
 
 
-		for (auto &drawable : drawables) {
-			drawable.obj.draw(lightedTexturedObjectShader, [model=drawable.model] (const Shader& shaderProg) {
+		for (int i = 0; i < std::size(drawables); ++i) {
+			auto &drawable = drawables[i];
+			if (i == editableObjectIndex) {
+				glBindTexture(GL_TEXTURE_2D, depthMap);
+				drawable.obj.draw(lightedTexturedObjectShader, [&drawable] (const Shader& shaderProg) {
+					glm::mat4 model = genModel(drawable.translate, drawable.rotate, drawable.scale);
+					shaderProg.set("model", model);
+				});
+				glBindTexture(GL_TEXTURE_2D, diffuseTexture);
+				continue;
+			}
+			drawable.obj.draw(lightedTexturedObjectShader, [&drawable] (const Shader& shaderProg) {
+				glm::mat4 model = genModel(drawable.translate, drawable.rotate, drawable.scale);
 				shaderProg.set("model", model);
 			});
 		}
