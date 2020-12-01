@@ -249,19 +249,85 @@ class App : public BaseApp {
 			glm::vec3 scale{0.4f, 0.8f, 0.4f};
 			drawables.push_back({conus_1, translate, rotate, scale});
 		}
-		{ // "Car 1-2 coupling"
-			glm::vec3 translate {-4.48f, -0.24f, 0.0f};
+		{ // "Car 1-2 bottom coupling"
+			glm::vec3 translate {-4.48f, -0.225f, 0.0f};
 			glm::vec3 rotate {0.0f, 0.0f, 0.0f};
-			glm::vec3 scale{0.65f, 0.3f, 0.8f};
+			glm::vec3 scale{0.65f, 0.35f, 0.8f};
 			drawables.push_back({figure_cube, translate, rotate, scale});
 		}
-		{ // "Car 2-1 coupling"
-			glm::vec3 translate {-4.48f, 0.1f, 0.0f};
-			glm::vec3 rotate {0.0f, 0.0f, 0.0f};
-			glm::vec3 scale{0.65f, 0.3f, 0.8f};
+		{ // "Car 2-1 top coupling"
+			glm::vec3 translate {-4.353f, 0.225f, -0.06f};
+			glm::vec3 rotate {0.0f, 350.0f, 0.0f};
+			glm::vec3 scale{0.65f, 0.35f, 0.8f};
 			drawables.push_back({figure_cube, translate, rotate, scale});
 		}
-
+		{ // "Car 1-2 connecter"
+			glm::vec3 translate {-4.38f, 0.42f, 0.0f};
+			glm::vec3 rotate {0.0f, 0.0f, 0.0f};
+			glm::vec3 scale{0.118f, 1.1f, 0.118f};
+			drawables.push_back({cylinder, translate, rotate, scale});
+		}
+		// 2 car
+		{ // "Car platform" 
+			glm::vec3 translate {-2.85f, 0.0f, 0.2f};
+			glm::vec3 rotate {0.0f, 350.0f, 90.0f};
+			glm::vec3 scale{0.8f, 2.4f, 0.8f};
+			drawables.push_back({figure_cube, translate, rotate, scale});
+		}
+		{ // "wHEEL tl" 
+			glm::vec3 translate {-6.58f+3.15f, -0.26f, 0.62f};
+			glm::vec3 rotate {90.0f, 0.0f, 10.0f};
+			glm::vec3 scale{0.474f, 0.237f, 0.474};
+			drawables.push_back({cylinder, translate, rotate, scale});
+		}
+		{ // "wHEEL bl" 
+			glm::vec3 translate {-5.4f+3.15f, -0.26f, 0.82f};
+			glm::vec3 rotate {90.0f, 0.0f, 10.0f};
+			glm::vec3 scale{0.474f, 0.237f, 0.474};
+			drawables.push_back({cylinder, translate, rotate, scale});
+		}
+		{ // "wHEEL ur" 
+			glm::vec3 translate {-3.3f, -0.26f, -0.4f};
+			glm::vec3 rotate {90.0f, 0.0f, 10.0f};
+			glm::vec3 scale{0.474f, 0.237f, 0.474};
+			drawables.push_back({cylinder, translate, rotate, scale});
+		}
+		{ // "wHEEL br" 
+			glm::vec3 translate {-2.065, -0.26f, -0.195f};
+			glm::vec3 rotate {90.0f, 0.0f, 10.0f};
+			glm::vec3 scale{0.474f, 0.237f, 0.474};
+			drawables.push_back({cylinder, translate, rotate, scale});
+		}
+		{ // "Car-2 weight-1" 
+			glm::vec3 translate {-2.85f, 0.6f, 0.2f};
+			glm::vec3 rotate {0.0f, 350.0f, 90.0f};
+			glm::vec3 scale{0.4f, 1.7f, 0.8f};
+			drawables.push_back({figure_cube, translate, rotate, scale});
+		}
+		{ // "Car-2 weight-2" 
+			glm::vec3 translate {-2.85f, 1.0f, 0.2f};
+			glm::vec3 rotate {0.0f, 350.0f, 90.0f};
+			glm::vec3 scale{0.4f, 1.7f, 0.8f};
+			drawables.push_back({figure_cube, translate, rotate, scale});
+		}
+		{ // "Car-2 weight-3" 
+		glm::vec3 translate {-2.85f, 1.4f, 0.2f};
+			glm::vec3 rotate {0.0f, 350.0f, 90.0f};
+			glm::vec3 scale{0.4f, 1.7f, 0.8f};
+			drawables.push_back({figure_cube, translate, rotate, scale});
+		}	
+		{ // "2 сyl-1"
+			glm::vec3 translate {-3.385f, 1.6f, 0.11f};
+			glm::vec3 rotate {0.0f, 0.0f, 0.0f};
+			glm::vec3 scale{0.118f, 0.39f, 0.118f};
+			drawables.push_back({cylinder, translate, rotate, scale});
+		}
+		{ // "2 сyl-1"
+			glm::vec3 translate {-2.37f, 1.6f, 0.29f};
+			glm::vec3 rotate {0.0f, 0.0f, 0.0f};
+			glm::vec3 scale{0.118f, 0.39f, 0.118f};
+			drawables.push_back({cylinder, translate, rotate, scale});
+		}
 	}
 
 	void Update(float dTime) override {
@@ -279,9 +345,15 @@ class App : public BaseApp {
 		ImGui::SetNextWindowCollapsed(false, ImGuiCond_Once);
 		ImGui::Begin("Editor");
 			ImGui::SliderInt("Current index", &editableObjectIndex, 0, std::size(drawables)-1);
-			ImGui::SliderFloat3("Position", &(drawables[editableObjectIndex].translate.x), -8.0f, 2.0f);
-			ImGui::SliderFloat3("Rotation", &(drawables[editableObjectIndex].rotate.x), 0.0f, 360.0f);
-			ImGui::SliderFloat3("Scale", &(drawables[editableObjectIndex].scale.x), -3.0f, 3.0f);
+			ImGui::SliderFloat("Pos###P1", &(drawables[editableObjectIndex].translate.x), -8.0f, 2.0f);
+			ImGui::SliderFloat("Pos###P2", &(drawables[editableObjectIndex].translate.y), -8.0f, 2.0f);
+			ImGui::SliderFloat("Pos###P3", &(drawables[editableObjectIndex].translate.z), -8.0f, 2.0f);
+			ImGui::SliderFloat("R###R1", &(drawables[editableObjectIndex].rotate.x), 0.0f, 360.0f);
+			ImGui::SliderFloat("R###R2", &(drawables[editableObjectIndex].rotate.y), 0.0f, 360.0f);
+			ImGui::SliderFloat("R###R3", &(drawables[editableObjectIndex].rotate.z), 0.0f, 360.0f);
+			ImGui::SliderFloat("S###S1", &(drawables[editableObjectIndex].scale.x), -3.0f, 3.0f);
+			ImGui::SliderFloat("S###S2", &(drawables[editableObjectIndex].scale.y), -3.0f, 3.0f);
+			ImGui::SliderFloat("S###S3", &(drawables[editableObjectIndex].scale.z), -3.0f, 3.0f);
 		ImGui::End();
 		// ImGui::Begin("Camera");
 			static int ProjectionType = 0;
