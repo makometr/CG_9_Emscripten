@@ -90,6 +90,7 @@ static std::array<bool, 2> pointLightsTurned {true, true};
 
 Materials materialManager {};
 std::reference_wrapper<const Material> curMat = materialManager.getMaterial(MaterialType::GOLD);
+std::unordered_map<std::string, unsigned> texutresManager;
 
 struct Vertex
 {
@@ -106,6 +107,7 @@ enum class ViewType {
 struct DrawablePair {
 	AbstractOpenGLObject &obj;
 	glm::vec3 translate, rotate, scale;
+	unsigned textureID = 0;
 };
 
 class App : public BaseApp {
@@ -146,8 +148,6 @@ class App : public BaseApp {
 	// float specular {128.0f};
 
 	// textures
-	unsigned diffuseTexture;
-	unsigned specularTexture;
 
 	GLuint depthMap;
 	GLuint depthMapFBO;
@@ -156,15 +156,18 @@ class App : public BaseApp {
 	int editableObjectIndex = 0;
 
 	void Start() override {
-		auto texture_load_result_1 = std::async(std::launch::deferred,TextureLoader::loadTexture, "resources/textures/container2.png");
-		auto texture_load_result_2 = std::async(std::launch::deferred,TextureLoader::loadTexture, "resources/textures/container2_specular.png");
+		std::vector<std::string> textureFileNames = {
+			"tree", "red", "green", "yellow", "lazur", "laibach_spec"
+		};
+		std::vector<std::future<std::pair<unsigned int, bool>>> texuresLoadingFutures;
+		for (const auto &textureName : textureFileNames)
+			texuresLoadingFutures.emplace_back(std::async(std::launch::deferred, TextureLoader::loadTexture, "resources/textures/" + textureName + ".png"));
+
 		glEnable(GL_DEPTH_TEST);
-
 		glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
-		cmcbManager.setCallbacks(window, &camera);
-
 		ImGui::StyleColorsLight();
 		glClearColor(1.0, 0.87, 0.83, 1.0);
+		cmcbManager.setCallbacks(window, &camera);
 
 
 		axes.initBuffers();
@@ -173,14 +176,15 @@ class App : public BaseApp {
 		cylinder.initBuffers();
 		conus_1.initBuffers();
 
-		auto [id_1, status_1] = texture_load_result_1.get();
-		auto [id_2, status_2] = texture_load_result_2.get();
-		if (!status_1 || !status_2) {
-			std::cout << "Texture failed to load!" << std::endl;
-			exit(0); // TODO handle
+		for (auto i {0}; i < textureFileNames.size(); i++) {
+			auto [id, status] = texuresLoadingFutures[i].get();
+			if (status)
+				texutresManager.insert({textureFileNames[i], id});
+			else {
+				std::cout << "Texture failed to load!" << std::endl;
+				exit(0); // TODO handle;
+			}
 		}
-		diffuseTexture = id_1;
-		specularTexture = id_2;
 		initShadowMapping(depthMapFBO, depthMap);
 
 
@@ -188,7 +192,7 @@ class App : public BaseApp {
 			glm::vec3 translate (0.0f, -2.0f, 0.0f);
 			glm::vec3 rotate {1.0f};
 			glm::vec3 scale(30.0f, 0.1f, 30.0f);
-			drawables.push_back({figure_cube, translate, rotate, scale}); // 0
+			drawables.push_back({figure_cube, translate, rotate, scale, texutresManager["tree"]}); // 0
 		}
 
 
@@ -199,134 +203,134 @@ class App : public BaseApp {
 			glm::vec3 translate = beginCoordinate;
 			glm::vec3 rotate {0.0f, 0.0f, 90.0f};
 			glm::vec3 scale{0.8f, 2.4f, 0.8f};
-			drawables.push_back({figure_cube, translate, rotate, scale});
+			drawables.push_back({figure_cube, translate, rotate, scale, texutresManager["tree"]});
 		}
 		{ // "wHEEL tl" 
 			glm::vec3 translate {-6.58f, -0.26f, 0.52f};
 			glm::vec3 rotate {90.0f, 0.0f, 0.0f};
 			glm::vec3 scale{0.474f, 0.237f, 0.474};
-			drawables.push_back({cylinder, translate, rotate, scale});
+			drawables.push_back({cylinder, translate, rotate, scale, texutresManager["red"]});
 		}
 		{ // "wHEEL bl" 
 			glm::vec3 translate {-5.4f, -0.26f, 0.52f};
 			glm::vec3 rotate {90.0f, 0.0f, 0.0f};
 			glm::vec3 scale{0.474f, 0.237f, 0.474};
-			drawables.push_back({cylinder, translate, rotate, scale});
+			drawables.push_back({cylinder, translate, rotate, scale, texutresManager["red"]});
 		}
 		{ // "wHEEL ur" 
 			glm::vec3 translate {-6.58f, -0.26f, -0.52f};
 			glm::vec3 rotate {90.0f, 0.0f, 0.0f};
 			glm::vec3 scale{0.474f, 0.237f, 0.474};
-			drawables.push_back({cylinder, translate, rotate, scale});
+			drawables.push_back({cylinder, translate, rotate, scale, texutresManager["red"]});
 		}
 		{ // "wHEEL dr" 
 			glm::vec3 translate {-5.4f, -0.26f, -0.52f};
 			glm::vec3 rotate {90.0f, 0.0f, 0.0f};
 			glm::vec3 scale{0.474f, 0.237f, 0.474};
-			drawables.push_back({cylinder, translate, rotate, scale});
+			drawables.push_back({cylinder, translate, rotate, scale, texutresManager["red"]});
 		}
 		{ // "Car cabine" 
 			glm::vec3 translate {-5.2f, 0.8f, 0.0f};
 			glm::vec3 rotate {0.0f, 0.0f, 0.0f};
 			glm::vec3 scale{0.8f, 0.8f, 0.8f};
-			drawables.push_back({figure_cube, translate, rotate, scale});
+			drawables.push_back({figure_cube, translate, rotate, scale, texutresManager["red"]});
 		}
 		{ // "Car roofdw" 
 			glm::vec3 translate {-5.2f, 1.35f, 0.0f};
 			glm::vec3 rotate {0.0f, 0.0f, 0.0f};
 			glm::vec3 scale{0.8f, 0.3f, 0.9f};
-			drawables.push_back({figure_cube, translate, rotate, scale});
+			drawables.push_back({figure_cube, translate, rotate, scale, texutresManager["yellow"]});
 		}
 		{ // "Engine" 
 			glm::vec3 translate {-6.35f, 0.9f, 0.0f};
 			glm::vec3 rotate {0.0f, 0.0f, 90.0f};
 			glm::vec3 scale{0.5f, 1.5f, 0.5f};
-			drawables.push_back({cylinder, translate, rotate, scale});
+			drawables.push_back({cylinder, translate, rotate, scale, texutresManager["green"]});
 		}
 		{ // "Truba" 
 			glm::vec3 translate {-6.62f, 1.74f, 0.0f};
 			glm::vec3 rotate {0.0f, 0.0f, 0.0f};
 			glm::vec3 scale{0.4f, 0.8f, 0.4f};
-			drawables.push_back({conus_1, translate, rotate, scale});
+			drawables.push_back({conus_1, translate, rotate, scale, texutresManager["lazur"]});
 		}
 		{ // "Car 1-2 bottom coupling"
 			glm::vec3 translate {-4.48f, -0.225f, 0.0f};
 			glm::vec3 rotate {0.0f, 0.0f, 0.0f};
 			glm::vec3 scale{0.65f, 0.35f, 0.8f};
-			drawables.push_back({figure_cube, translate, rotate, scale});
+			drawables.push_back({figure_cube, translate, rotate, scale, texutresManager["tree"]});
 		}
 		{ // "Car 2-1 top coupling"
 			glm::vec3 translate {-4.353f, 0.225f, -0.06f};
 			glm::vec3 rotate {0.0f, 350.0f, 0.0f};
 			glm::vec3 scale{0.65f, 0.35f, 0.8f};
-			drawables.push_back({figure_cube, translate, rotate, scale});
+			drawables.push_back({figure_cube, translate, rotate, scale, texutresManager["tree"]});
 		}
 		{ // "Car 1-2 connecter"
 			glm::vec3 translate {-4.38f, 0.42f, 0.0f};
 			glm::vec3 rotate {0.0f, 0.0f, 0.0f};
 			glm::vec3 scale{0.118f, 1.1f, 0.118f};
-			drawables.push_back({cylinder, translate, rotate, scale});
+			drawables.push_back({cylinder, translate, rotate, scale, texutresManager["lazur"]});
 		}
 		// 2 car
 		{ // "Car platform" 
 			glm::vec3 translate {-2.85f, 0.0f, 0.2f};
 			glm::vec3 rotate {0.0f, 350.0f, 90.0f};
 			glm::vec3 scale{0.8f, 2.4f, 0.8f};
-			drawables.push_back({figure_cube, translate, rotate, scale});
+			drawables.push_back({figure_cube, translate, rotate, scale, texutresManager["tree"]});
 		}
 		{ // "wHEEL tl" 
 			glm::vec3 translate {-6.58f+3.15f, -0.26f, 0.62f};
 			glm::vec3 rotate {90.0f, 0.0f, 10.0f};
 			glm::vec3 scale{0.474f, 0.237f, 0.474};
-			drawables.push_back({cylinder, translate, rotate, scale});
+			drawables.push_back({cylinder, translate, rotate, scale, texutresManager["lazur"]});
 		}
 		{ // "wHEEL bl" 
 			glm::vec3 translate {-5.4f+3.15f, -0.26f, 0.82f};
 			glm::vec3 rotate {90.0f, 0.0f, 10.0f};
 			glm::vec3 scale{0.474f, 0.237f, 0.474};
-			drawables.push_back({cylinder, translate, rotate, scale});
+			drawables.push_back({cylinder, translate, rotate, scale, texutresManager["lazur"]});
 		}
 		{ // "wHEEL ur" 
 			glm::vec3 translate {-3.3f, -0.26f, -0.4f};
 			glm::vec3 rotate {90.0f, 0.0f, 10.0f};
 			glm::vec3 scale{0.474f, 0.237f, 0.474};
-			drawables.push_back({cylinder, translate, rotate, scale});
+			drawables.push_back({cylinder, translate, rotate, scale, texutresManager["lazur"]});
 		}
 		{ // "wHEEL br" 
 			glm::vec3 translate {-2.065, -0.26f, -0.195f};
 			glm::vec3 rotate {90.0f, 0.0f, 10.0f};
 			glm::vec3 scale{0.474f, 0.237f, 0.474};
-			drawables.push_back({cylinder, translate, rotate, scale});
+			drawables.push_back({cylinder, translate, rotate, scale, texutresManager["lazur"]});
 		}
 		{ // "Car-2 weight-1" 
 			glm::vec3 translate {-2.85f, 0.6f, 0.2f};
 			glm::vec3 rotate {0.0f, 350.0f, 90.0f};
 			glm::vec3 scale{0.4f, 1.7f, 0.8f};
-			drawables.push_back({figure_cube, translate, rotate, scale});
+			drawables.push_back({figure_cube, translate, rotate, scale, texutresManager["yellow"]});
 		}
 		{ // "Car-2 weight-2" 
 			glm::vec3 translate {-2.85f, 1.0f, 0.2f};
 			glm::vec3 rotate {0.0f, 350.0f, 90.0f};
 			glm::vec3 scale{0.4f, 1.7f, 0.8f};
-			drawables.push_back({figure_cube, translate, rotate, scale});
+			drawables.push_back({figure_cube, translate, rotate, scale, texutresManager["lazur"]});
 		}
 		{ // "Car-2 weight-3" 
 		glm::vec3 translate {-2.85f, 1.4f, 0.2f};
 			glm::vec3 rotate {0.0f, 350.0f, 90.0f};
 			glm::vec3 scale{0.4f, 1.7f, 0.8f};
-			drawables.push_back({figure_cube, translate, rotate, scale});
+			drawables.push_back({figure_cube, translate, rotate, scale, texutresManager["green"]});
 		}	
 		{ // "2 сyl-1"
 			glm::vec3 translate {-3.385f, 1.6f, 0.11f};
 			glm::vec3 rotate {0.0f, 0.0f, 0.0f};
 			glm::vec3 scale{0.118f, 0.39f, 0.118f};
-			drawables.push_back({cylinder, translate, rotate, scale});
+			drawables.push_back({cylinder, translate, rotate, scale, texutresManager["tree"]});
 		}
 		{ // "2 сyl-1"
 			glm::vec3 translate {-2.37f, 1.6f, 0.29f};
 			glm::vec3 rotate {0.0f, 0.0f, 0.0f};
 			glm::vec3 scale{0.118f, 0.39f, 0.118f};
-			drawables.push_back({cylinder, translate, rotate, scale});
+			drawables.push_back({cylinder, translate, rotate, scale, texutresManager["tree"]});
 		}
 	}
 
@@ -337,9 +341,6 @@ class App : public BaseApp {
         lastFrame = currentFrame; 
 		if (cmcbManager.getCameraActiveStatus())
 			cmcbManager.applyPlayerMoveControllerChanges(deltaTime);
-
-		glfwPollEvents();
-
 		ImGui::SetNextWindowSize({780, 130}, ImGuiCond_Once);
 		ImGui::SetNextWindowPos({10, 10}, ImGuiCond_Once);
 		ImGui::SetNextWindowCollapsed(false, ImGuiCond_Once);
@@ -510,9 +511,9 @@ class App : public BaseApp {
 
 
 		glActiveTexture(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_2D, diffuseTexture);
-		glActiveTexture(GL_TEXTURE1);
-		glBindTexture(GL_TEXTURE_2D, specularTexture);
+		glBindTexture(GL_TEXTURE_2D, texutresManager["red"]);
+		// glActiveTexture(GL_TEXTURE1);
+		// glBindTexture(GL_TEXTURE_2D, texutresManager["laibach_spec"]);
 		glActiveTexture(GL_TEXTURE2);
 		glBindTexture(GL_TEXTURE_2D, depthMap);
 		glActiveTexture(GL_TEXTURE0);
@@ -527,12 +528,13 @@ class App : public BaseApp {
 					glm::mat4 model = genModel(drawable.translate, drawable.rotate, drawable.scale);
 					shaderProg.set("model", model);
 				});
-				glBindTexture(GL_TEXTURE_2D, diffuseTexture);
-				continue;
+				// glBindTexture(GL_TEXTURE_2D, texutresManager["red"]);
+				// continue;
 			}
 			drawable.obj.draw(lightedTexturedObjectShader, [&drawable] (const Shader& shaderProg) {
 				glm::mat4 model = genModel(drawable.translate, drawable.rotate, drawable.scale);
 				shaderProg.set("model", model);
+				glBindTexture(GL_TEXTURE_2D, drawable.textureID);
 			});
 		}
 

@@ -19,6 +19,7 @@ public:
 
 
     static std::pair<unsigned, bool> loadTexture(const std::string &path) {
+        std::cout << path << std::endl;
         unsigned int textureID;
         glGenTextures(1, &textureID);
 
