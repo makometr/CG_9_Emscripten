@@ -2,7 +2,7 @@
 
 #include "AbstractOpenGLObject.hpp"
 
-class TextureCube : AbstractOpenGLObject {
+class TextureCube : public AbstractOpenGLObject {
 public:
 	TextureCube() = default;
 	~TextureCube() = default;
